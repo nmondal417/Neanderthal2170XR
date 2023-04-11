@@ -5,9 +5,9 @@ import MemTypes::*;
 import Vector::*;
 import Ehr::*;
 
-//typedef Bit#(128) NumLines;
 typedef Bit#(19) TagSize;
 typedef Bit#(7) IdxSize;
+typedef Bit#(4) OffsetSize;
 typedef Bit#(4) OSize;
 typedef enum {Ready, StartMiss_BRAMReq, StartMiss_BRAMResp, SendFillReq, WaitFillResp, HitQ} ReqStatus deriving (Bits, Eq);
 
@@ -32,6 +32,7 @@ module mkCache(Cache);
 
   FIFO#(MainMemReq) fromProcQ <- mkFIFO;
   FIFO#(Word) hitQ <- mkBypassFIFO;
+  FIFO#(OffsetSize) offsetQ <- mkBypassFIFO;
   FIFO#(MainMemReq) memReqQ <- mkFIFO;
   FIFO#(MainMemResp) memRespQ <- mkFIFO; 
 
@@ -43,8 +44,10 @@ module mkCache(Cache);
   Ehr#(2, Bool) lockL1 <- mkEhr(False);
 
   rule bram_to_hitQ if (mshr == HitQ);
-    let data <- cache_data.portA.response.get();
-    // get offset
+    let line <- cache_data.portA.response.get();
+    let offset = offsetQ.first();
+    offsetQ.deq();
+    data = line[32*(16-offset)-1 : 32*(15-offset)];
     hitQ.enq(data);
     mshr <= Ready;
 
@@ -52,7 +55,7 @@ module mkCache(Cache);
 
 
   rule startMiss_BRAMReq if (mshr == StartMiss_BRAMReq);
-    let req_idx = missReq.addr[6:0];
+    let req_idx = missReq.addr[10:4];
     let old_line_valid = validArray[req_idx];
     let old_line_dirty = dirtyArray[req_idx];
 
@@ -147,6 +150,7 @@ module mkCache(Cache);
                         responseOnWrite: False,
                         address: req_idx,
                         datain: req_data});
+      
     end
     else begin
       missCount <= missCount + 1;
@@ -169,8 +173,9 @@ module mkCache(Cache);
 
     let req_addr = req.addr;
     let req_data = req.data;
-    let req_idx = req_addr[6:0];
-    let req_tag = req_addr[25:7];
+    let req_offset = req_addr[3:0]
+    let req_idx = req_addr[10:4];
+    let req_tag = req_addr[29:11];
     let cur_tag = tagArray[req_idx];
     let cur_valid = validArray[req_idx];
     //$display("Load/Store: %d, Tag: %d, Idx: %d", req_store, req_tag, req_idx);
@@ -194,6 +199,9 @@ module mkCache(Cache);
                          responseOnWrite: False,
                          address: req_idx,
                          datain: ?});
+
+        offsetQ.enq(req_offet);   //store the line offset so that it can be used later
+
         mshr <= HitQ;
       end
       else begin     //cache miss
