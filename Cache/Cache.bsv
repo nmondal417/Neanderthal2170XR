@@ -8,7 +8,7 @@ import Ehr::*;
 //typedef Bit#(128) NumLines;
 typedef Bit#(19) TagSize;
 typedef Bit#(7) IdxSize;
-typedef Bit#(4) oSize;
+typedef Bit#(4) OSize;
 typedef enum {Ready, StartMiss_BRAMReq, StartMiss_BRAMResp, SendFillReq, WaitFillResp, HitQ} ReqStatus deriving (Bits, Eq);
 
 
