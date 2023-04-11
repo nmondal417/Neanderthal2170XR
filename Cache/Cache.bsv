@@ -8,6 +8,7 @@ import Ehr::*;
 //typedef Bit#(128) NumLines;
 typedef Bit#(19) TagSize;
 typedef Bit#(7) IdxSize;
+typedef Bit#(4) oSize;
 typedef enum {Ready, StartMiss_BRAMReq, StartMiss_BRAMResp, SendFillReq, WaitFillResp, HitQ} ReqStatus deriving (Bits, Eq);
 
 
@@ -30,7 +31,7 @@ module mkCache(Cache);
   Reg#(ReqStatus) mshr <- mkReg(Ready);
 
   FIFO#(MainMemReq) fromProcQ <- mkFIFO;
-  FIFO#(MainMemResp) hitQ <- mkBypassFIFO;
+  FIFO#(Word) hitQ <- mkBypassFIFO;
   FIFO#(MainMemReq) memReqQ <- mkFIFO;
   FIFO#(MainMemResp) memRespQ <- mkFIFO; 
 
@@ -43,6 +44,7 @@ module mkCache(Cache);
 
   rule bram_to_hitQ if (mshr == HitQ);
     let data <- cache_data.portA.response.get();
+    // get offset
     hitQ.enq(data);
     mshr <= Ready;
 
