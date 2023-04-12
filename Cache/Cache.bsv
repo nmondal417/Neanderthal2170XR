@@ -12,8 +12,8 @@ typedef enum {Ready, StartMiss_BRAMReq, StartMiss_BRAMResp, SendFillReq, WaitFil
 
 
 interface Cache;
-    method Action putFromProc(MainMemReq req);
-    method ActionValue#(MainMemResp) getToProc();
+    method Action putFromProc(ProcReq req);
+    method ActionValue#(Word) getToProc();
     method ActionValue#(MainMemReq) getToMem();
     method Action putFromMem(MainMemResp resp);
 endinterface
@@ -167,10 +167,10 @@ module mkCache(Cache);
 
   rule clearL1Lock; lockL1[1] <= False; endrule
 
-  method Action putFromProc(MainMemReq req) if (mshr == Ready);
+  method Action putFromProc(ProcReq req) if (mshr == Ready);
     let req_store = req.write; //1 if store, 0 if load
 
-    let req_addr = req.addr;
+    Word req_addr = req.addr;
     let req_data = req.data;
     let req_offset = req_addr[3:0]
     let req_idx = req_addr[10:4];
@@ -213,7 +213,7 @@ module mkCache(Cache);
     
   endmethod
 
-  method ActionValue#(MainMemResp) getToProc();
+  method ActionValue#(Word) getToProc();
     hitQ.deq();
     return hitQ.first();
   endmethod
