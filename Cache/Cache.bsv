@@ -167,8 +167,9 @@ module mkCache(Cache);
     Vector#(16, Word) line <- cache_data.portA.response.get();
     ProcReq req = storeQ.first();
 
-    let req_data = req.data;
-    let req_addr = req.addr;
+    Word req_data = req.data;
+    Word req_addr = req.addr;
+    let req_idx = req_addr[12:6];
     let req_offset = req_addr[5:2];
 
     line[req_offset] = req_data;
@@ -184,7 +185,7 @@ module mkCache(Cache);
 
   rule displayPercents;
     if (missCount == 100) begin
-      $display("Misses: %d Hits: %d", missCount, hitCount);
+      //$display("Misses: %d Hits: %d", missCount, hitCount);
     end
   endrule
 
