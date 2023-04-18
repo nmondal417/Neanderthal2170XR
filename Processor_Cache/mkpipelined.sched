@@ -1,0 +1,215 @@
+=== Generated schedule for mkpipelined ===
+
+Method schedule
+---------------
+Method: getIReq
+Ready signal: toImem_rv.port1__read[68]
+Conflict-free: getIResp, getDReq, getDResp, getMMIOReq, getMMIOResp
+Conflicts: getIReq
+ 
+Method: getIResp
+Ready signal: ! fromImem_rv.port0__read[68]
+Conflict-free: getIReq, getDResp, getMMIOResp
+Sequenced before (restricted): getDReq, getMMIOReq
+Conflicts: getIResp
+ 
+Method: getDReq
+Ready signal: toDmem_rv.port1__read[68]
+Conflict-free: getIReq, getDResp, getMMIOReq, getMMIOResp
+Sequenced after (restricted): getIResp
+Conflicts: getDReq
+ 
+Method: getDResp
+Ready signal: ! fromDmem_rv.port0__read[68]
+Conflict-free: getIReq, getIResp, getDReq, getMMIOReq, getMMIOResp
+Conflicts: getDResp
+ 
+Method: getMMIOReq
+Ready signal: toMMIO_rv.port1__read[68]
+Conflict-free: getIReq, getDReq, getDResp, getMMIOResp
+Sequenced after (restricted): getIResp
+Conflicts: getMMIOReq
+ 
+Method: getMMIOResp
+Ready signal: ! fromMMIO_rv.port0__read[68]
+Conflict-free: getIReq, getIResp, getDReq, getDResp, getMMIOReq
+Conflicts: getMMIOResp
+ 
+Rule schedule
+-------------
+Rule: do_tic_logging
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: fetch
+Predicate: (! toImem_rv.port0__read[68]) && f2d.i_notFull && (! starting)
+Blocking rules: (none)
+ 
+Rule: decode
+Predicate: f2d.i_notEmpty &&
+	   ((f2d.first[48] == mEpoch)
+	    ? fromImem_rv.port1__read[68] &&
+	      (scoreboard.search1(fromImem_rv.port1__read[19:15]) ||
+	       scoreboard.search2(fromImem_rv.port1__read[24:20]) ||
+	       scoreboard.search3(fromImem_rv.port1__read[11:7]) ||
+	       d2e.i_notFull)
+	    : fromImem_rv.port1__read[68]) &&
+	   (! starting)
+Blocking rules: (none)
+ 
+Rule: execute
+Predicate: d2e.i_notEmpty &&
+	   ((! (d2e.first[117] == mEpoch)) ||
+	    (e2w.i_notFull &&
+	     (d2e.first[188] || (! (d2e.first[186:185] == 2'b0)) ||
+	      ((((d2e.first[116:85] +
+		  ((d2e.first[217] &&
+		    ((d2e.first[217]
+		      ? d2e.first[216:214]
+		      : (_ :: Bit 3)) ==
+		     3'd0))
+		   ? sext d2e.first[213:202]
+		   : ((d2e.first[217] &&
+		       ((d2e.first[217]
+			 ? d2e.first[216:214]
+			 : (_ :: Bit 3)) ==
+			3'd1))
+		      ? sext {d2e.first[213:207], d2e.first[193:189]}
+		      : ((d2e.first[217] &&
+			  ((d2e.first[217]
+			    ? d2e.first[216:214]
+			    : (_ :: Bit 3)) ==
+			   3'd2))
+			 ? sext {d2e.first[213], d2e.first[189], d2e.first[212:207], d2e.first[193:190], 1'b0}
+			 : ((d2e.first[217] &&
+			     ((d2e.first[217]
+			       ? d2e.first[216:214]
+			       : (_ :: Bit 3)) ==
+			      3'd3))
+			    ? {d2e.first[213:194], 12'b0}
+			    : ((d2e.first[217] &&
+				((d2e.first[217]
+				  ? d2e.first[216:214]
+				  : (_ :: Bit 3)) ==
+				 3'd4))
+			       ? sext {d2e.first[213], d2e.first[201:194], d2e.first[202], d2e.first[212:203], 1'b0}
+			       : 32'd0))))))[31:2] ==
+		 30'd1006649340) ||
+		((d2e.first[116:85] +
+		  ((d2e.first[217] &&
+		    ((d2e.first[217]
+		      ? d2e.first[216:214]
+		      : (_ :: Bit 3)) ==
+		     3'd0))
+		   ? sext d2e.first[213:202]
+		   : ((d2e.first[217] &&
+		       ((d2e.first[217]
+			 ? d2e.first[216:214]
+			 : (_ :: Bit 3)) ==
+			3'd1))
+		      ? sext {d2e.first[213:207], d2e.first[193:189]}
+		      : ((d2e.first[217] &&
+			  ((d2e.first[217]
+			    ? d2e.first[216:214]
+			    : (_ :: Bit 3)) ==
+			   3'd2))
+			 ? sext {d2e.first[213], d2e.first[189], d2e.first[212:207], d2e.first[193:190], 1'b0}
+			 : ((d2e.first[217] &&
+			     ((d2e.first[217]
+			       ? d2e.first[216:214]
+			       : (_ :: Bit 3)) ==
+			      3'd3))
+			    ? {d2e.first[213:194], 12'b0}
+			    : ((d2e.first[217] &&
+				((d2e_first____d221(...)[217]
+				  ? d2e_first____d221(...)[216:214]
+				  : (_ :: Bit 3)) ==
+				 3'd4))
+			       ? sext {d2e.first[213], d2e.first[201:194], d2e_first____d221(...)[202], d2e_first____d221(...)[212:203], 1'b0}
+			       : 32'd0))))))[31:2] ==
+		 30'd1006649341) ||
+		((d2e.first[116:85] +
+		  ((d2e.first[217] &&
+		    ((d2e.first[217]
+		      ? d2e.first[216:214]
+		      : (_ :: Bit 3)) ==
+		     3'd0))
+		   ? sext d2e.first[213:202]
+		   : ((d2e.first[217] &&
+		       ((d2e.first[217]
+			 ? d2e.first[216:214]
+			 : (_ :: Bit 3)) ==
+			3'd1))
+		      ? sext {d2e.first[213:207], d2e.first[193:189]}
+		      : ((d2e.first[217] &&
+			  ((d2e.first[217]
+			    ? d2e.first[216:214]
+			    : (_ :: Bit 3)) ==
+			   3'd2))
+			 ? sext {d2e.first[213], d2e.first[189], d2e.first[212:207], d2e.first[193:190], 1'b0}
+			 : ((d2e.first[217] &&
+			     ((d2e.first[217]
+			       ? d2e.first[216:214]
+			       : (_ :: Bit 3)) ==
+			      3'd3))
+			    ? {d2e.first[213:194], 12'b0}
+			    : ((d2e.first[217] &&
+				((d2e_first____d221(...)[217]
+				  ? d2e_first____d221(...)[216:214]
+				  : (_ :: Bit 3)) ==
+				 3'd4))
+			       ? sext {d2e.first[213], d2e.first[201:194], d2e_first____d221(...)[202], d2e_first____d221(...)[212:203], 1'b0}
+			       : 32'd0))))))[31:2] ==
+		 30'd1006649342))
+	       ? ! toMMIO_rv.port0__read[68]
+	       : (! toDmem_rv.port0__read[68]))))) &&
+	   (! starting)
+Blocking rules: (none)
+ 
+Rule: writeback
+Predicate: e2w.i_notEmpty &&
+	   retired.i_notFull &&
+	   (e2w.first[54] || (! (e2w.first[52:51] == 2'b0)) ||
+	    ((e2w.i_notEmpty && e2w.first[120])
+	     ? fromMMIO_rv.port1__read[68]
+	     : fromDmem_rv.port1__read[68])) &&
+	   ((! e2w.first[84]) ||
+	    (e2w.first[59:55] == 5'd0) ||
+	    e2w.first[54] || (! (e2w.first[52:51] == 2'b0)) ||
+	    (((e2w.first[125:123] == 3'b0) ||
+	      (e2w.first[125:123] == 3'b1) ||
+	      (e2w.first[125:123] == 3'b100) ||
+	      (e2w.first[125:123] == 3'b101))
+	     ? (e2w.i_notEmpty && e2w.first[120])
+	       ? fromMMIO_rv.port1__read[68]
+	       : fromDmem_rv.port1__read[68]
+	     : ((! (e2w.first[125:123] == 3'b10)) ||
+		((e2w.i_notEmpty && e2w.first[120])
+		 ? fromMMIO_rv.port1__read[68]
+		 : fromDmem_rv.port1__read[68])))) &&
+	   (! starting)
+Blocking rules: (none)
+ 
+Rule: administrative_konata_commit
+Predicate: retired.i_notEmpty
+Blocking rules: (none)
+ 
+Rule: administrative_konata_flush
+Predicate: squashed.i_notEmpty
+Blocking rules: (none)
+ 
+Logical execution order: getIResp,
+			 getDResp,
+			 getMMIOResp,
+			 fetch,
+			 getIReq,
+			 decode,
+			 execute,
+			 getDReq,
+			 getMMIOReq,
+			 writeback,
+			 administrative_konata_commit,
+			 administrative_konata_flush,
+			 do_tic_logging
+
+===========================================

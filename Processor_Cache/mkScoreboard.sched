@@ -1,0 +1,206 @@
+=== Generated schedule for mkScoreboard ===
+
+Method schedule
+---------------
+Method: insert
+Ready signal: True
+Sequenced before: remove1, remove2
+Sequenced after: search1, search2, search3
+Conflicts: insert
+ 
+Method: remove1
+Ready signal: True
+Sequenced before: remove2
+Sequenced after: insert, search1, search2, search3
+Conflicts: remove1
+ 
+Method: remove2
+Ready signal: True
+Sequenced after: insert, remove1, search1, search2, search3
+Conflicts: remove2
+ 
+Method: search1
+Ready signal: True
+Conflict-free: search1, search2, search3
+Sequenced before: insert, remove1, remove2
+ 
+Method: search2
+Ready signal: True
+Conflict-free: search1, search2, search3
+Sequenced before: insert, remove1, remove2
+ 
+Method: search3
+Ready signal: True
+Conflict-free: search1, search2, search3
+Sequenced before: insert, remove1, remove2
+ 
+Rule schedule
+-------------
+Rule: sb_0_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: sb_1_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: sb_2_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: sb_3_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: sb_4_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: sb_5_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: sb_6_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: sb_7_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: sb_8_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: sb_9_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: sb_10_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: sb_11_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: sb_12_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: sb_13_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: sb_14_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: sb_15_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: sb_16_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: sb_17_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: sb_18_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: sb_19_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: sb_20_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: sb_21_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: sb_22_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: sb_23_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: sb_24_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: sb_25_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: sb_26_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: sb_27_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: sb_28_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: sb_29_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: sb_30_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: sb_31_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Logical execution order: search1,
+			 search2,
+			 search3,
+			 insert,
+			 remove1,
+			 remove2,
+			 sb_0_canonicalize,
+			 sb_1_canonicalize,
+			 sb_2_canonicalize,
+			 sb_3_canonicalize,
+			 sb_4_canonicalize,
+			 sb_5_canonicalize,
+			 sb_6_canonicalize,
+			 sb_7_canonicalize,
+			 sb_8_canonicalize,
+			 sb_9_canonicalize,
+			 sb_10_canonicalize,
+			 sb_11_canonicalize,
+			 sb_12_canonicalize,
+			 sb_13_canonicalize,
+			 sb_14_canonicalize,
+			 sb_15_canonicalize,
+			 sb_16_canonicalize,
+			 sb_17_canonicalize,
+			 sb_18_canonicalize,
+			 sb_19_canonicalize,
+			 sb_20_canonicalize,
+			 sb_21_canonicalize,
+			 sb_22_canonicalize,
+			 sb_23_canonicalize,
+			 sb_24_canonicalize,
+			 sb_25_canonicalize,
+			 sb_26_canonicalize,
+			 sb_27_canonicalize,
+			 sb_28_canonicalize,
+			 sb_29_canonicalize,
+			 sb_30_canonicalize,
+			 sb_31_canonicalize
+
+============================================
