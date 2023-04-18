@@ -8,8 +8,8 @@ import Cache::*;
 
 module mkBeveren(Empty);
     let verbose = False;
-    Randomize#(MainMemReq) randomMem <- mkGenericRandomizer;
-    MainMem mainRef <- mkMainMemFast(); //Initialize both to 0
+    Randomize#(ProcReq) randomMem <- mkGenericRandomizer;
+    MainMemFast mainRef <- mkMainMemFast(); //Initialize both to 0
     MainMem mainMem <- mkMainMem(); //Initialize both to 0
     Cache cache <- mkCache;
     
@@ -35,8 +35,8 @@ module mkBeveren(Empty);
     rule reqs (counterIn <= 50000);
        let newrand <- randomMem.next;
        deadlockChecker <= 0;
-       MainMemReq newreq = newrand;
-      // newreq.addr = {0,newreq.addr[11:2],2'b0};
+       ProcReq newreq = newrand;
+       newreq.addr = {0, newreq.addr[14:2],2'b0};
        if ( newreq.write == 0) counterIn <= counterIn + 1;
        mainRef.put(newreq);
        cache.putFromProc(newreq);

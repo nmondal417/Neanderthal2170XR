@@ -102,7 +102,7 @@ module mktop_pipelined(Empty);
         if (debug) $display("Get IReq", fshow(req));
         ireq <= req;
         //TODO check req struct
-        i_cache.putFromProc(ProcReq{write: byte_en[0], addr: req.addr, data: req.data});
+        i_cache.putFromProc(ProcReq{write: req.byte_en[0], addr: req.addr, data: req.data});
 
     endrule
     
@@ -118,7 +118,7 @@ module mktop_pipelined(Empty);
         let req <- rv_core.getDReq;
         dreq <= req;
         if (debug) $display("Get DReq", fshow(req));
-        d_cache.putFromProc(ProcReq{write: byte_en[0], addr: req.addr, data: req.data});
+        d_cache.putFromProc(ProcReq{write: req.byte_en[0], addr: req.addr, data: req.data});
     endrule
 
     rule responseD;
@@ -143,7 +143,7 @@ module mktop_pipelined(Empty);
                 // Writing to STDERR
                 $fwrite(stderr, "%c", req.data[7:0]);
                 $fflush(stderr);
-        end els
+        end else
             if (req.addr == 'hf000_fff8) begin
             // Exiting Simulation
                 if (req.data == 0) begin
