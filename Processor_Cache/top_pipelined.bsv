@@ -72,7 +72,7 @@ module mktop_pipelined(Empty);
     Reg#(Mem) ireq <- mkRegU;
     Reg#(Mem) dreq <- mkRegU;
     FIFO#(Mem) mmioreq <- mkFIFO;
-    let debug = False;
+    let debug = True;
     Reg#(Bit#(32)) cycle_count <- mkReg(0);
 
     rule tic;
@@ -84,7 +84,7 @@ module mktop_pipelined(Empty);
         dram.put1(lineReq);
     endrule
     rule connectDramICache;
-        let resp <- dram.get1;
+        let resp <- dram.get1();
         i_cache.putFromMem(resp);
     endrule
 
@@ -93,12 +93,12 @@ module mktop_pipelined(Empty);
         dram.put2(lineReq);
     endrule
     rule connectDramDCache;
-        let resp <- dram.get2;
+        let resp <- dram.get2();
         d_cache.putFromMem(resp);
     endrule
 
     rule requestI;
-        let req <- rv_core.getIReq;
+        let req <- rv_core.getIReq();
         if (debug) $display("Get IReq", fshow(req));
         ireq <= req;
         //TODO check req struct
@@ -115,7 +115,7 @@ module mktop_pipelined(Empty);
     endrule
 
     rule requestD;
-        let req <- rv_core.getDReq;
+        let req <- rv_core.getDReq();
         dreq <= req;
         if (debug) $display("Get DReq", fshow(req));
         d_cache.putFromProc(ProcReq{write: req.byte_en[0], addr: req.addr, data: req.data});
