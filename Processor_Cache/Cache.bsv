@@ -30,7 +30,7 @@ module mkCache(Cache);
   Reg#(ReqStatus) mshr <- mkReg(Ready);
 
   FIFO#(Word) hitQ <- mkBypassFIFO;
-  FIFO#(OffsetSize) loadOffsetQ <- mkBypassFIFO;
+  FIFO#(OffsetSize) loadOffsetQ <- mkFIFO;
   FIFO#(MainMemReq) memReqQ <- mkFIFO;
   FIFO#(MainMemResp) memRespQ <- mkFIFO; 
 
@@ -43,9 +43,11 @@ module mkCache(Cache);
 
   rule bram_to_hitQ if (mshr == HitQ);
     Vector#(16, Word) line <- cache_data.portA.response.get();
+    $display("Line ", fshow(line));
     let req_offset = loadOffsetQ.first();
     loadOffsetQ.deq();
     Word data = line[req_offset];
+    $display("Data ", data);
     hitQ.enq(data);
     mshr <= Ready;
   endrule
@@ -98,8 +100,9 @@ module mkCache(Cache);
   rule waitFillResp if (mshr == WaitFillResp);
     memRespQ.deq();
     MainMemResp mem_data = memRespQ.first();
+    $display("Mem Resp ", mem_data);
     Vector#(16, Word) new_line = unpack(mem_data); //unpack the 512-bit response into a vector of 16 words
-
+    $display("New Line ", fshow(new_line));
     let req_store = missReq.write;
     let req_offset = missReq.addr[5:2];
     let req_idx = missReq.addr[12:6];
@@ -132,7 +135,7 @@ module mkCache(Cache);
 
   endrule
 
-
+/*
   rule storeQ_handler if (mshr == Ready && !lockL1[1]);
     ProcReq req = storeQ.first();
 
@@ -161,7 +164,7 @@ module mkCache(Cache);
       storeQ.deq();
     end
 
-  endrule
+  endrule */
 
   rule waitStore if (mshr == WaitStore);
     Vector#(16, Word) line <- cache_data.portA.response.get();
@@ -189,7 +192,7 @@ module mkCache(Cache);
     end
   endrule
 
-  rule clearL1Lock; lockL1[1] <= False; endrule
+  //rule clearL1Lock; lockL1[1] <= False; endrule
 
   method Action putFromProc(ProcReq req) if (mshr == Ready);
     let req_store = req.write; //1 if store, 0 if load
@@ -201,13 +204,30 @@ module mkCache(Cache);
     let req_tag = req_addr[31:13];
     let cur_tag = tagArray[req_idx];
     let cur_valid = validArray[req_idx];
-    //$display("Load/Store: %d, Tag: %d, Idx: %d", req_store, req_tag, req_idx);
+    $display("Load/Store: %d, Tag: %d, Idx: %d, Offset: %d", req_store, req_tag, req_idx, req_offset);
 
     if (req_store == 1) begin //store instruction
+      if (cur_tag == req_tag && cur_valid) begin  //cache hit
+        $display("Cache Store Hit");
+        hitCount <= hitCount + 1;
+        dirtyArray[req_idx] <= True;    //update dirty array
+        cache_data.portA.request.put(BRAMRequest{write: False,   //we need to first read the entire line before writing the word
+                          responseOnWrite: False,
+                          address: req_idx,
+                          datain: ?});
+        mshr <= WaitStore;
         storeQ.enq(req);
+      end
+      else begin
+        $display("Cache Store Miss");
+        missCount <= missCount + 1;
+        mshr <= StartMiss_BRAMReq;
+        missReq <= req;
+      end
     end
 
     else begin     //load instruction
+    /*
       lockL1[0] <= True;    //lock L1 so that store buffer does not access it
       ProcReq storeQ_req = storeQ.first();
       if (storeQ_req.addr == req_addr)  begin   //hit in store Q
@@ -216,8 +236,9 @@ module mkCache(Cache);
           Word storeQ_data = storeQ_req.data;
           hitQ.enq(storeQ_data);
       end
-      else if (cur_tag == req_tag && cur_valid) begin  //cache hit 
-        //$display("Cache Hit");
+      */
+      if (cur_tag == req_tag && cur_valid) begin  //cache hit 
+        $display("Cache Load Hit");
         hitCount <= hitCount + 1;
         cache_data.portA.request.put(BRAMRequest{write: False,   //read corresponding line (512 bits) from cache
                          responseOnWrite: False,
@@ -229,7 +250,7 @@ module mkCache(Cache);
         mshr <= HitQ;
       end
       else begin     //cache miss
-        //$display("Cache Miss");
+        $display("Cache Load Miss");
         missCount <= missCount + 1;
         mshr <= StartMiss_BRAMReq;
         missReq <= req;

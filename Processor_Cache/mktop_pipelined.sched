@@ -447,10 +447,10 @@ Predicate: True
 Blocking rules: (none)
  
 Rule: i_cache_bram_to_hitQ
-Predicate: i_cache_loadOffsetQ_rv.port1__read[4] &&
-	   i_cache_cache_data_serverAdapter_outData_beforeDeq.read &&
+Predicate: i_cache_cache_data_serverAdapter_outData_beforeDeq.read &&
 	   (i_cache_cache_data_serverAdapter_outData_ff.i_notEmpty ||
 	    i_cache_cache_data_serverAdapter_outData_enqw.whas) &&
+	   i_cache_loadOffsetQ.i_notEmpty &&
 	   (! i_cache_hitQ_rv.port0__read[32]) &&
 	   (i_cache_mshr == 3'd5)
 Blocking rules: (none)
@@ -737,276 +737,6 @@ Predicate: (i_cache_cache_data_serverAdapter_cnt .< 3'd3) &&
 	   (i_cache_mshr == 3'd4)
 Blocking rules: (none)
  
-Rule: i_cache_storeQ_handler
-Predicate: i_cache_storeQ.i_notEmpty &&
-	   ((! ((PrimArrayDynSelect (PrimBuildArray i_cache_tagArray_0
-						    i_cache_tagArray_1
-						    i_cache_tagArray_2
-						    i_cache_tagArray_3
-						    i_cache_tagArray_4
-						    i_cache_tagArray_5
-						    i_cache_tagArray_6
-						    i_cache_tagArray_7
-						    i_cache_tagArray_8
-						    i_cache_tagArray_9
-						    i_cache_tagArray_10
-						    i_cache_tagArray_11
-						    i_cache_tagArray_12
-						    i_cache_tagArray_13
-						    i_cache_tagArray_14
-						    i_cache_tagArray_15
-						    i_cache_tagArray_16
-						    i_cache_tagArray_17
-						    i_cache_tagArray_18
-						    i_cache_tagArray_19
-						    i_cache_tagArray_20
-						    i_cache_tagArray_21
-						    i_cache_tagArray_22
-						    i_cache_tagArray_23
-						    i_cache_tagArray_24
-						    i_cache_tagArray_25
-						    i_cache_tagArray_26
-						    i_cache_tagArray_27
-						    i_cache_tagArray_28
-						    i_cache_tagArray_29
-						    i_cache_tagArray_30
-						    i_cache_tagArray_31
-						    i_cache_tagArray_32
-						    i_cache_tagArray_33
-						    i_cache_tagArray_34
-						    i_cache_tagArray_35
-						    i_cache_tagArray_36
-						    i_cache_tagArray_37
-						    i_cache_tagArray_38
-						    i_cache_tagArray_39
-						    i_cache_tagArray_40
-						    i_cache_tagArray_41
-						    i_cache_tagArray_42
-						    i_cache_tagArray_43
-						    i_cache_tagArray_44
-						    i_cache_tagArray_45
-						    i_cache_tagArray_46
-						    i_cache_tagArray_47
-						    i_cache_tagArray_48
-						    i_cache_tagArray_49
-						    i_cache_tagArray_50
-						    i_cache_tagArray_51
-						    i_cache_tagArray_52
-						    i_cache_tagArray_53
-						    i_cache_tagArray_54
-						    i_cache_tagArray_55
-						    i_cache_tagArray_56
-						    i_cache_tagArray_57
-						    i_cache_tagArray_58
-						    i_cache_tagArray_59
-						    i_cache_tagArray_60
-						    i_cache_tagArray_61
-						    i_cache_tagArray_62
-						    i_cache_tagArray_63
-						    i_cache_tagArray_64
-						    i_cache_tagArray_65
-						    i_cache_tagArray_66
-						    i_cache_tagArray_67
-						    i_cache_tagArray_68
-						    i_cache_tagArray_69
-						    i_cache_tagArray_70
-						    i_cache_tagArray_71
-						    i_cache_tagArray_72
-						    i_cache_tagArray_73
-						    i_cache_tagArray_74
-						    i_cache_tagArray_75
-						    i_cache_tagArray_76
-						    i_cache_tagArray_77
-						    i_cache_tagArray_78
-						    i_cache_tagArray_79
-						    i_cache_tagArray_80
-						    i_cache_tagArray_81
-						    i_cache_tagArray_82
-						    i_cache_tagArray_83
-						    i_cache_tagArray_84
-						    i_cache_tagArray_85
-						    i_cache_tagArray_86
-						    i_cache_tagArray_87
-						    i_cache_tagArray_88
-						    i_cache_tagArray_89
-						    i_cache_tagArray_90
-						    i_cache_tagArray_91
-						    i_cache_tagArray_92
-						    i_cache_tagArray_93
-						    i_cache_tagArray_94
-						    i_cache_tagArray_95
-						    i_cache_tagArray_96
-						    i_cache_tagArray_97
-						    i_cache_tagArray_98
-						    i_cache_tagArray_99
-						    i_cache_tagArray_100
-						    i_cache_tagArray_101
-						    i_cache_tagArray_102
-						    i_cache_tagArray_103
-						    i_cache_tagArray_104
-						    i_cache_tagArray_105
-						    i_cache_tagArray_106
-						    i_cache_tagArray_107
-						    i_cache_tagArray_108
-						    i_cache_tagArray_109
-						    i_cache_tagArray_110
-						    i_cache_tagArray_111
-						    i_cache_tagArray_112
-						    i_cache_tagArray_113
-						    i_cache_tagArray_114
-						    i_cache_tagArray_115
-						    i_cache_tagArray_116
-						    i_cache_tagArray_117
-						    i_cache_tagArray_118
-						    i_cache_tagArray_119
-						    i_cache_tagArray_120
-						    i_cache_tagArray_121
-						    i_cache_tagArray_122
-						    i_cache_tagArray_123
-						    i_cache_tagArray_124
-						    i_cache_tagArray_125
-						    i_cache_tagArray_126
-						    i_cache_tagArray_127)
-				    i_cache_storeQ.first[44:38]) ==
-		i_cache_storeQ.first[63:45])) ||
-	    (! (PrimArrayDynSelect (PrimBuildArray i_cache_validArray_0
-						   i_cache_validArray_1
-						   i_cache_validArray_2
-						   i_cache_validArray_3
-						   i_cache_validArray_4
-						   i_cache_validArray_5
-						   i_cache_validArray_6
-						   i_cache_validArray_7
-						   i_cache_validArray_8
-						   i_cache_validArray_9
-						   i_cache_validArray_10
-						   i_cache_validArray_11
-						   i_cache_validArray_12
-						   i_cache_validArray_13
-						   i_cache_validArray_14
-						   i_cache_validArray_15
-						   i_cache_validArray_16
-						   i_cache_validArray_17
-						   i_cache_validArray_18
-						   i_cache_validArray_19
-						   i_cache_validArray_20
-						   i_cache_validArray_21
-						   i_cache_validArray_22
-						   i_cache_validArray_23
-						   i_cache_validArray_24
-						   i_cache_validArray_25
-						   i_cache_validArray_26
-						   i_cache_validArray_27
-						   i_cache_validArray_28
-						   i_cache_validArray_29
-						   i_cache_validArray_30
-						   i_cache_validArray_31
-						   i_cache_validArray_32
-						   i_cache_validArray_33
-						   i_cache_validArray_34
-						   i_cache_validArray_35
-						   i_cache_validArray_36
-						   i_cache_validArray_37
-						   i_cache_validArray_38
-						   i_cache_validArray_39
-						   i_cache_validArray_40
-						   i_cache_validArray_41
-						   i_cache_validArray_42
-						   i_cache_validArray_43
-						   i_cache_validArray_44
-						   i_cache_validArray_45
-						   i_cache_validArray_46
-						   i_cache_validArray_47
-						   i_cache_validArray_48
-						   i_cache_validArray_49
-						   i_cache_validArray_50
-						   i_cache_validArray_51
-						   i_cache_validArray_52
-						   i_cache_validArray_53
-						   i_cache_validArray_54
-						   i_cache_validArray_55
-						   i_cache_validArray_56
-						   i_cache_validArray_57
-						   i_cache_validArray_58
-						   i_cache_validArray_59
-						   i_cache_validArray_60
-						   i_cache_validArray_61
-						   i_cache_validArray_62
-						   i_cache_validArray_63
-						   i_cache_validArray_64
-						   i_cache_validArray_65
-						   i_cache_validArray_66
-						   i_cache_validArray_67
-						   i_cache_validArray_68
-						   i_cache_validArray_69
-						   i_cache_validArray_70
-						   i_cache_validArray_71
-						   i_cache_validArray_72
-						   i_cache_validArray_73
-						   i_cache_validArray_74
-						   i_cache_validArray_75
-						   i_cache_validArray_76
-						   i_cache_validArray_77
-						   i_cache_validArray_78
-						   i_cache_validArray_79
-						   i_cache_validArray_80
-						   i_cache_validArray_81
-						   i_cache_validArray_82
-						   i_cache_validArray_83
-						   i_cache_validArray_84
-						   i_cache_validArray_85
-						   i_cache_validArray_86
-						   i_cache_validArray_87
-						   i_cache_validArray_88
-						   i_cache_validArray_89
-						   i_cache_validArray_90
-						   i_cache_validArray_91
-						   i_cache_validArray_92
-						   i_cache_validArray_93
-						   i_cache_validArray_94
-						   i_cache_validArray_95
-						   i_cache_validArray_96
-						   i_cache_validArray_97
-						   i_cache_validArray_98
-						   i_cache_validArray_99
-						   i_cache_validArray_100
-						   i_cache_validArray_101
-						   i_cache_validArray_102
-						   i_cache_validArray_103
-						   i_cache_validArray_104
-						   i_cache_validArray_105
-						   i_cache_validArray_106
-						   i_cache_validArray_107
-						   i_cache_validArray_108
-						   i_cache_validArray_109
-						   i_cache_validArray_110
-						   i_cache_validArray_111
-						   i_cache_validArray_112
-						   i_cache_validArray_113
-						   i_cache_validArray_114
-						   i_cache_validArray_115
-						   i_cache_validArray_116
-						   i_cache_validArray_117
-						   i_cache_validArray_118
-						   i_cache_validArray_119
-						   i_cache_validArray_120
-						   i_cache_validArray_121
-						   i_cache_validArray_122
-						   i_cache_validArray_123
-						   i_cache_validArray_124
-						   i_cache_validArray_125
-						   i_cache_validArray_126
-						   i_cache_validArray_127)
-				   i_cache_storeQ.first[44:38])) ||
-	    (i_cache_cache_data_serverAdapter_cnt .< 3'd3)) &&
-	   (i_cache_mshr == 3'd0) &&
-	   (i_cache_lockL1_readBeforeLaterWrites_1.read
-	    ? i_cache_lockL1_port_0.whas
-	      ? ! i_cache_lockL1_port_0.wget
-	      : (! i_cache_lockL1_register)
-	    : (_ :: Bit 1))
-Blocking rules: requestI
- 
 Rule: i_cache_waitStore
 Predicate: i_cache_cache_data_serverAdapter_outData_beforeDeq.read &&
 	   (i_cache_cache_data_serverAdapter_outData_ff.i_notEmpty ||
@@ -1014,10 +744,6 @@ Predicate: i_cache_cache_data_serverAdapter_outData_beforeDeq.read &&
 	   (i_cache_cache_data_serverAdapter_cnt .< 3'd3) &&
 	   i_cache_storeQ.i_notEmpty &&
 	   (i_cache_mshr == 3'd6)
-Blocking rules: (none)
- 
-Rule: i_cache_clearL1Lock
-Predicate: True
 Blocking rules: (none)
  
 Rule: d_cache_cache_data_serverAdapter_outData_enqueue
@@ -1063,10 +789,10 @@ Predicate: True
 Blocking rules: (none)
  
 Rule: d_cache_bram_to_hitQ
-Predicate: d_cache_loadOffsetQ_rv.port1__read[4] &&
-	   d_cache_cache_data_serverAdapter_outData_beforeDeq.read &&
+Predicate: d_cache_cache_data_serverAdapter_outData_beforeDeq.read &&
 	   (d_cache_cache_data_serverAdapter_outData_ff.i_notEmpty ||
 	    d_cache_cache_data_serverAdapter_outData_enqw.whas) &&
+	   d_cache_loadOffsetQ.i_notEmpty &&
 	   (! d_cache_hitQ_rv.port0__read[32]) &&
 	   (d_cache_mshr == 3'd5)
 Blocking rules: (none)
@@ -1353,276 +1079,6 @@ Predicate: (d_cache_cache_data_serverAdapter_cnt .< 3'd3) &&
 	   (d_cache_mshr == 3'd4)
 Blocking rules: (none)
  
-Rule: d_cache_storeQ_handler
-Predicate: d_cache_storeQ.i_notEmpty &&
-	   ((! ((PrimArrayDynSelect (PrimBuildArray d_cache_tagArray_0
-						    d_cache_tagArray_1
-						    d_cache_tagArray_2
-						    d_cache_tagArray_3
-						    d_cache_tagArray_4
-						    d_cache_tagArray_5
-						    d_cache_tagArray_6
-						    d_cache_tagArray_7
-						    d_cache_tagArray_8
-						    d_cache_tagArray_9
-						    d_cache_tagArray_10
-						    d_cache_tagArray_11
-						    d_cache_tagArray_12
-						    d_cache_tagArray_13
-						    d_cache_tagArray_14
-						    d_cache_tagArray_15
-						    d_cache_tagArray_16
-						    d_cache_tagArray_17
-						    d_cache_tagArray_18
-						    d_cache_tagArray_19
-						    d_cache_tagArray_20
-						    d_cache_tagArray_21
-						    d_cache_tagArray_22
-						    d_cache_tagArray_23
-						    d_cache_tagArray_24
-						    d_cache_tagArray_25
-						    d_cache_tagArray_26
-						    d_cache_tagArray_27
-						    d_cache_tagArray_28
-						    d_cache_tagArray_29
-						    d_cache_tagArray_30
-						    d_cache_tagArray_31
-						    d_cache_tagArray_32
-						    d_cache_tagArray_33
-						    d_cache_tagArray_34
-						    d_cache_tagArray_35
-						    d_cache_tagArray_36
-						    d_cache_tagArray_37
-						    d_cache_tagArray_38
-						    d_cache_tagArray_39
-						    d_cache_tagArray_40
-						    d_cache_tagArray_41
-						    d_cache_tagArray_42
-						    d_cache_tagArray_43
-						    d_cache_tagArray_44
-						    d_cache_tagArray_45
-						    d_cache_tagArray_46
-						    d_cache_tagArray_47
-						    d_cache_tagArray_48
-						    d_cache_tagArray_49
-						    d_cache_tagArray_50
-						    d_cache_tagArray_51
-						    d_cache_tagArray_52
-						    d_cache_tagArray_53
-						    d_cache_tagArray_54
-						    d_cache_tagArray_55
-						    d_cache_tagArray_56
-						    d_cache_tagArray_57
-						    d_cache_tagArray_58
-						    d_cache_tagArray_59
-						    d_cache_tagArray_60
-						    d_cache_tagArray_61
-						    d_cache_tagArray_62
-						    d_cache_tagArray_63
-						    d_cache_tagArray_64
-						    d_cache_tagArray_65
-						    d_cache_tagArray_66
-						    d_cache_tagArray_67
-						    d_cache_tagArray_68
-						    d_cache_tagArray_69
-						    d_cache_tagArray_70
-						    d_cache_tagArray_71
-						    d_cache_tagArray_72
-						    d_cache_tagArray_73
-						    d_cache_tagArray_74
-						    d_cache_tagArray_75
-						    d_cache_tagArray_76
-						    d_cache_tagArray_77
-						    d_cache_tagArray_78
-						    d_cache_tagArray_79
-						    d_cache_tagArray_80
-						    d_cache_tagArray_81
-						    d_cache_tagArray_82
-						    d_cache_tagArray_83
-						    d_cache_tagArray_84
-						    d_cache_tagArray_85
-						    d_cache_tagArray_86
-						    d_cache_tagArray_87
-						    d_cache_tagArray_88
-						    d_cache_tagArray_89
-						    d_cache_tagArray_90
-						    d_cache_tagArray_91
-						    d_cache_tagArray_92
-						    d_cache_tagArray_93
-						    d_cache_tagArray_94
-						    d_cache_tagArray_95
-						    d_cache_tagArray_96
-						    d_cache_tagArray_97
-						    d_cache_tagArray_98
-						    d_cache_tagArray_99
-						    d_cache_tagArray_100
-						    d_cache_tagArray_101
-						    d_cache_tagArray_102
-						    d_cache_tagArray_103
-						    d_cache_tagArray_104
-						    d_cache_tagArray_105
-						    d_cache_tagArray_106
-						    d_cache_tagArray_107
-						    d_cache_tagArray_108
-						    d_cache_tagArray_109
-						    d_cache_tagArray_110
-						    d_cache_tagArray_111
-						    d_cache_tagArray_112
-						    d_cache_tagArray_113
-						    d_cache_tagArray_114
-						    d_cache_tagArray_115
-						    d_cache_tagArray_116
-						    d_cache_tagArray_117
-						    d_cache_tagArray_118
-						    d_cache_tagArray_119
-						    d_cache_tagArray_120
-						    d_cache_tagArray_121
-						    d_cache_tagArray_122
-						    d_cache_tagArray_123
-						    d_cache_tagArray_124
-						    d_cache_tagArray_125
-						    d_cache_tagArray_126
-						    d_cache_tagArray_127)
-				    d_cache_storeQ.first[44:38]) ==
-		d_cache_storeQ.first[63:45])) ||
-	    (! (PrimArrayDynSelect (PrimBuildArray d_cache_validArray_0
-						   d_cache_validArray_1
-						   d_cache_validArray_2
-						   d_cache_validArray_3
-						   d_cache_validArray_4
-						   d_cache_validArray_5
-						   d_cache_validArray_6
-						   d_cache_validArray_7
-						   d_cache_validArray_8
-						   d_cache_validArray_9
-						   d_cache_validArray_10
-						   d_cache_validArray_11
-						   d_cache_validArray_12
-						   d_cache_validArray_13
-						   d_cache_validArray_14
-						   d_cache_validArray_15
-						   d_cache_validArray_16
-						   d_cache_validArray_17
-						   d_cache_validArray_18
-						   d_cache_validArray_19
-						   d_cache_validArray_20
-						   d_cache_validArray_21
-						   d_cache_validArray_22
-						   d_cache_validArray_23
-						   d_cache_validArray_24
-						   d_cache_validArray_25
-						   d_cache_validArray_26
-						   d_cache_validArray_27
-						   d_cache_validArray_28
-						   d_cache_validArray_29
-						   d_cache_validArray_30
-						   d_cache_validArray_31
-						   d_cache_validArray_32
-						   d_cache_validArray_33
-						   d_cache_validArray_34
-						   d_cache_validArray_35
-						   d_cache_validArray_36
-						   d_cache_validArray_37
-						   d_cache_validArray_38
-						   d_cache_validArray_39
-						   d_cache_validArray_40
-						   d_cache_validArray_41
-						   d_cache_validArray_42
-						   d_cache_validArray_43
-						   d_cache_validArray_44
-						   d_cache_validArray_45
-						   d_cache_validArray_46
-						   d_cache_validArray_47
-						   d_cache_validArray_48
-						   d_cache_validArray_49
-						   d_cache_validArray_50
-						   d_cache_validArray_51
-						   d_cache_validArray_52
-						   d_cache_validArray_53
-						   d_cache_validArray_54
-						   d_cache_validArray_55
-						   d_cache_validArray_56
-						   d_cache_validArray_57
-						   d_cache_validArray_58
-						   d_cache_validArray_59
-						   d_cache_validArray_60
-						   d_cache_validArray_61
-						   d_cache_validArray_62
-						   d_cache_validArray_63
-						   d_cache_validArray_64
-						   d_cache_validArray_65
-						   d_cache_validArray_66
-						   d_cache_validArray_67
-						   d_cache_validArray_68
-						   d_cache_validArray_69
-						   d_cache_validArray_70
-						   d_cache_validArray_71
-						   d_cache_validArray_72
-						   d_cache_validArray_73
-						   d_cache_validArray_74
-						   d_cache_validArray_75
-						   d_cache_validArray_76
-						   d_cache_validArray_77
-						   d_cache_validArray_78
-						   d_cache_validArray_79
-						   d_cache_validArray_80
-						   d_cache_validArray_81
-						   d_cache_validArray_82
-						   d_cache_validArray_83
-						   d_cache_validArray_84
-						   d_cache_validArray_85
-						   d_cache_validArray_86
-						   d_cache_validArray_87
-						   d_cache_validArray_88
-						   d_cache_validArray_89
-						   d_cache_validArray_90
-						   d_cache_validArray_91
-						   d_cache_validArray_92
-						   d_cache_validArray_93
-						   d_cache_validArray_94
-						   d_cache_validArray_95
-						   d_cache_validArray_96
-						   d_cache_validArray_97
-						   d_cache_validArray_98
-						   d_cache_validArray_99
-						   d_cache_validArray_100
-						   d_cache_validArray_101
-						   d_cache_validArray_102
-						   d_cache_validArray_103
-						   d_cache_validArray_104
-						   d_cache_validArray_105
-						   d_cache_validArray_106
-						   d_cache_validArray_107
-						   d_cache_validArray_108
-						   d_cache_validArray_109
-						   d_cache_validArray_110
-						   d_cache_validArray_111
-						   d_cache_validArray_112
-						   d_cache_validArray_113
-						   d_cache_validArray_114
-						   d_cache_validArray_115
-						   d_cache_validArray_116
-						   d_cache_validArray_117
-						   d_cache_validArray_118
-						   d_cache_validArray_119
-						   d_cache_validArray_120
-						   d_cache_validArray_121
-						   d_cache_validArray_122
-						   d_cache_validArray_123
-						   d_cache_validArray_124
-						   d_cache_validArray_125
-						   d_cache_validArray_126
-						   d_cache_validArray_127)
-				   d_cache_storeQ.first[44:38])) ||
-	    (d_cache_cache_data_serverAdapter_cnt .< 3'd3)) &&
-	   (d_cache_mshr == 3'd0) &&
-	   (d_cache_lockL1_readBeforeLaterWrites_1.read
-	    ? d_cache_lockL1_port_0.whas
-	      ? ! d_cache_lockL1_port_0.wget
-	      : (! d_cache_lockL1_register)
-	    : (_ :: Bit 1))
-Blocking rules: requestD
- 
 Rule: d_cache_waitStore
 Predicate: d_cache_cache_data_serverAdapter_outData_beforeDeq.read &&
 	   (d_cache_cache_data_serverAdapter_outData_ff.i_notEmpty ||
@@ -1630,10 +1086,6 @@ Predicate: d_cache_cache_data_serverAdapter_outData_beforeDeq.read &&
 	   (d_cache_cache_data_serverAdapter_cnt .< 3'd3) &&
 	   d_cache_storeQ.i_notEmpty &&
 	   (d_cache_mshr == 3'd6)
-Blocking rules: (none)
- 
-Rule: d_cache_clearL1Lock
-Predicate: True
 Blocking rules: (none)
  
 Rule: tic
@@ -1661,30 +1113,26 @@ Blocking rules: (none)
 Rule: requestI
 Predicate: (i_cache_mshr == 3'd0) &&
 	   rv_core.RDY_getIReq &&
-	   i_cache_storeQ.i_notFull &&
-	   i_cache_storeQ.i_notEmpty &&
-	   (! i_cache_hitQ_rv.port0__read[32]) &&
 	   (i_cache_cache_data_serverAdapter_cnt .< 3'd3) &&
-	   (! i_cache_loadOffsetQ_rv.port0__read[4])
+	   i_cache_storeQ.i_notFull &&
+	   i_cache_loadOffsetQ.i_notFull
 Blocking rules: (none)
  
 Rule: responseI
 Predicate: i_cache_hitQ_rv.port1__read[32] && rv_core.RDY_getIResp
-Blocking rules: requestI
+Blocking rules: (none)
  
 Rule: requestD
 Predicate: (d_cache_mshr == 3'd0) &&
 	   rv_core.RDY_getDReq &&
-	   d_cache_storeQ.i_notFull &&
-	   d_cache_storeQ.i_notEmpty &&
-	   (! d_cache_hitQ_rv.port0__read[32]) &&
 	   (d_cache_cache_data_serverAdapter_cnt .< 3'd3) &&
-	   (! d_cache_loadOffsetQ_rv.port0__read[4])
+	   d_cache_storeQ.i_notFull &&
+	   d_cache_loadOffsetQ.i_notFull
 Blocking rules: (none)
  
 Rule: responseD
 Predicate: d_cache_hitQ_rv.port1__read[32] && rv_core.RDY_getDResp
-Blocking rules: requestD
+Blocking rules: (none)
  
 Rule: requestMMIO
 Predicate: rv_core.RDY_getMMIOReq && mmioreq.i_notFull
@@ -1699,7 +1147,6 @@ Logical execution order: tic,
 			 connectDramICache,
 			 connectDCacheDram,
 			 connectDramDCache,
-			 requestI,
 			 responseMMIO,
 			 dram_bram_serverAdapterA_stageReadResponseAlways,
 			 dram_bram_serverAdapterA_overRun,
@@ -1798,13 +1245,11 @@ Logical execution order: tic,
 			 i_cache_startMiss_BRAMReq,
 			 i_cache_sendFillReq,
 			 i_cache_waitFillResp,
-			 i_cache_storeQ_handler,
-			 i_cache_clearL1Lock,
 			 i_cache_cache_data_serverAdapter_overRun,
 			 i_cache_cache_data_serverAdapter_moveToOutFIFO,
 			 i_cache_bram_to_hitQ,
 			 responseI,
-			 requestD,
+			 requestI,
 			 requestMMIO,
 			 i_cache_startMiss_BRAMResp,
 			 i_cache_waitStore,
@@ -1817,12 +1262,11 @@ Logical execution order: tic,
 			 d_cache_startMiss_BRAMReq,
 			 d_cache_sendFillReq,
 			 d_cache_waitFillResp,
-			 d_cache_storeQ_handler,
-			 d_cache_clearL1Lock,
 			 d_cache_cache_data_serverAdapter_overRun,
 			 d_cache_cache_data_serverAdapter_moveToOutFIFO,
 			 d_cache_bram_to_hitQ,
 			 responseD,
+			 requestD,
 			 d_cache_startMiss_BRAMResp,
 			 d_cache_waitStore,
 			 d_cache_cache_data_serverAdapter_stageReadResponseAlways,
