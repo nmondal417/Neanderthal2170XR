@@ -43,11 +43,11 @@ module mkCache(Cache);
 
   rule bram_to_hitQ if (mshr == HitQ);
     Vector#(16, Word) line <- cache_data.portA.response.get();
-    $display("Line ", fshow(line));
+    //$display("Line ", fshow(line));
     let req_offset = loadOffsetQ.first();
     loadOffsetQ.deq();
     Word data = line[req_offset];
-    $display("Data ", data);
+    //$display("Data ", data);
     hitQ.enq(data);
     mshr <= Ready;
   endrule
@@ -100,9 +100,9 @@ module mkCache(Cache);
   rule waitFillResp if (mshr == WaitFillResp);
     memRespQ.deq();
     MainMemResp mem_data = memRespQ.first();
-    $display("Mem Resp ", mem_data);
+    //$display("Mem Resp ", mem_data);
     Vector#(16, Word) new_line = unpack(mem_data); //unpack the 512-bit response into a vector of 16 words
-    $display("New Line ", fshow(new_line));
+    //$display("New Line ", fshow(new_line));
     let req_store = missReq.write;
     let req_offset = missReq.addr[5:2];
     let req_idx = missReq.addr[12:6];
@@ -204,11 +204,11 @@ module mkCache(Cache);
     let req_tag = req_addr[31:13];
     let cur_tag = tagArray[req_idx];
     let cur_valid = validArray[req_idx];
-    $display("Load/Store: %d, Tag: %d, Idx: %d, Offset: %d", req_store, req_tag, req_idx, req_offset);
+    //$display("Load/Store: %d, Tag: %d, Idx: %d, Offset: %d", req_store, req_tag, req_idx, req_offset);
 
     if (req_store == 1) begin //store instruction
       if (cur_tag == req_tag && cur_valid) begin  //cache hit
-        $display("Cache Store Hit");
+        //$display("Cache Store Hit");
         hitCount <= hitCount + 1;
         dirtyArray[req_idx] <= True;    //update dirty array
         cache_data.portA.request.put(BRAMRequest{write: False,   //we need to first read the entire line before writing the word
@@ -219,7 +219,7 @@ module mkCache(Cache);
         storeQ.enq(req);
       end
       else begin
-        $display("Cache Store Miss");
+        //$display("Cache Store Miss");
         missCount <= missCount + 1;
         mshr <= StartMiss_BRAMReq;
         missReq <= req;
@@ -238,7 +238,7 @@ module mkCache(Cache);
       end
       */
       if (cur_tag == req_tag && cur_valid) begin  //cache hit 
-        $display("Cache Load Hit");
+        //$display("Cache Load Hit");
         hitCount <= hitCount + 1;
         cache_data.portA.request.put(BRAMRequest{write: False,   //read corresponding line (512 bits) from cache
                          responseOnWrite: False,
@@ -250,7 +250,7 @@ module mkCache(Cache);
         mshr <= HitQ;
       end
       else begin     //cache miss
-        $display("Cache Load Miss");
+        //$display("Cache Load Miss");
         missCount <= missCount + 1;
         mshr <= StartMiss_BRAMReq;
         missReq <= req;

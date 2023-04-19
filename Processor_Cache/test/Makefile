@@ -24,11 +24,11 @@ mmio32.o: mmio.c
 	$(RISCVCC32) -c mmio.c -o mmio32.o
 
 
-$(BUILDDIR)/%32.hex: $(ELF2HEX)/elf2hex $(SRCDIR)/%.c init32.o mmio32.o mmio.ld
+$(BUILDDIR)/%32.hex: $(SRCDIR)/%.c init32.o mmio32.o mmio.ld
 	mkdir -p $(BUILDDIR)
 	$(RISCVCC32) -O2 -c $(SRCDIR)/$*.c -o intermediate32.o
 	$(RISCVCC32) -o $(BUILDDIR)/$*32 -Tmmio.ld intermediate32.o init32.o mmio32.o
-	$(ELF2HEX)/elf2hex $(BUILDDIR)/$*32 0 16G $(BUILDDIR)/$*32.hex
+	riscv64-unknown-elf-elf2hex --bit-width 512 --input $(BUILDDIR)/$*32 --output $(BUILDDIR)/$*32.hex
 	rm intermediate32.o
 
 clean:

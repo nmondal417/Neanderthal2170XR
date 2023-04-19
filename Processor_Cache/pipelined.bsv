@@ -98,7 +98,7 @@ module mkpipelined(RVIfc);
     FIFO#(Mem) fromDmem <- mkBypassFIFO;
     FIFO#(Mem) toMMIO <- mkBypassFIFO;
     FIFO#(Mem) fromMMIO <- mkBypassFIFO;
-    let debug = False;
+    let debug = True;
 
     Reg#(Bit#(32)) program_counter <- mkReg(32'h0000000);
     Vector#(32, Reg#(Bit#(32))) rf <- replicateM(mkReg(0));
