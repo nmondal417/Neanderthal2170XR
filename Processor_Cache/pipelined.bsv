@@ -102,7 +102,7 @@ module mkpipelined(RVIfc);
     let mmio_debug = False;
     let konata_debug = False;
 
-    Reg#(Bit#(32)) program_counter <- mkReg(32'h0000000);
+    Ehr#(2, Bit#(32)) program_counter <- mkEhr(32'h0000000);
     Vector#(32, Reg#(Bit#(32))) rf <- replicateM(mkReg(0));
     //Control Registers
     // Reg#(Bit#(32)) rv1 <- mkReg(0);
@@ -155,12 +155,12 @@ module mkpipelined(RVIfc);
     rule fetch if (!starting);
         // You should put the pc that you fetch in pc_fetched
         // Below is the code to support Konata's visualization
-        program_counter <= program_counter + 4;
+        program_counter[0] <= program_counter[0] + 4;
 		let iid <- fetch1Konata(lfh, fresh_id, 0);
-        if (konata_debug) labelKonataLeft(lfh, iid, $format("PC %x",program_counter));
-        if(debug && count < maxCount) $display("Fetch %x", program_counter);
-        toImem.enq(Mem{byte_en: 0,  addr: program_counter, data: 0});
-        f2d.enq(F2D{pc: program_counter, ppc: program_counter + 4, epoch: mEpoch, k_id: iid});
+        if (konata_debug) labelKonataLeft(lfh, iid, $format("PC %x",program_counter[0]));
+        if(debug && count < maxCount) $display("Fetch %x", program_counter[0]);
+        toImem.enq(Mem{byte_en: 0,  addr: program_counter[0], data: 0});
+        f2d.enq(F2D{pc: program_counter[0], ppc: program_counter[0] + 4, epoch: mEpoch, k_id: iid});
         // This will likely end with something like:
         // f2d.enq(F2D{ ..... k_id: iid});
         // iid is the unique identifier used by konata, that we will pass around everywhere for each instruction
@@ -295,7 +295,7 @@ module mkpipelined(RVIfc);
             if(ppc != nextPc) begin
                 if(debug && count < maxCount) $display("New PC: ", fshow(nextPc));
                 mEpoch <= mEpoch + 1;
-                program_counter <= nextPc;
+                program_counter[1] <= nextPc;
             end 
             
             if (konata_debug) labelKonataLeft(lfh,current_id, $format(" ALU output: %x" , data));
@@ -346,7 +346,7 @@ module mkpipelined(RVIfc);
 		if(debug && count < maxCount) $display("[Writeback]", fshow(dInst));
         if (!dInst.legal) begin
 			if(debug && count < maxCount) $display("[Writeback] Illegal Inst, Drop and fault: ", fshow(dInst));
-			program_counter <= 0;	// Fault
+			//program_counter <= 0;	// Fault
 	    end
 		if (dInst.valid_rd) begin
             let rd_idx = fields.rd;

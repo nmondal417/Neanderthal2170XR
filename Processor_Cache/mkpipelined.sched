@@ -37,6 +37,10 @@ Conflicts: getMMIOResp
  
 Rule schedule
 -------------
+Rule: program_counter_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
 Rule: doTic
 Predicate: True
 Blocking rules: (none)
@@ -125,11 +129,11 @@ Predicate: d2e.i_notEmpty &&
 			      3'd3))
 			    ? {d2e.first[213:194], 12'b0}
 			    : ((d2e.first[217] &&
-				((d2e_first____d223(...)[217]
-				  ? d2e_first____d223(...)[216:214]
+				((d2e_first____d234(...)[217]
+				  ? d2e_first____d234(...)[216:214]
 				  : (_ :: Bit 3)) ==
 				 3'd4))
-			       ? sext {d2e.first[213], d2e.first[201:194], d2e_first____d223(...)[202], d2e_first____d223(...)[212:203], 1'b0}
+			       ? sext {d2e.first[213], d2e.first[201:194], d2e_first____d234(...)[202], d2e_first____d234(...)[212:203], 1'b0}
 			       : 32'd0))))))[31:2] ==
 		 30'd1006649341) ||
 		((d2e.first[116:85] +
@@ -158,11 +162,11 @@ Predicate: d2e.i_notEmpty &&
 			      3'd3))
 			    ? {d2e.first[213:194], 12'b0}
 			    : ((d2e.first[217] &&
-				((d2e_first____d223(...)[217]
-				  ? d2e_first____d223(...)[216:214]
+				((d2e_first____d234(...)[217]
+				  ? d2e_first____d234(...)[216:214]
 				  : (_ :: Bit 3)) ==
 				 3'd4))
-			       ? sext {d2e.first[213], d2e.first[201:194], d2e_first____d223(...)[202], d2e_first____d223(...)[212:203], 1'b0}
+			       ? sext {d2e.first[213], d2e.first[201:194], d2e_first____d234(...)[202], d2e_first____d234(...)[212:203], 1'b0}
 			       : 32'd0))))))[31:2] ==
 		 30'd1006649342))
 	       ? ! toMMIO_rv.port0__read[68]
@@ -215,6 +219,7 @@ Logical execution order: getIResp,
 			 writeback,
 			 administrative_konata_commit,
 			 administrative_konata_flush,
-			 do_tic_logging
+			 do_tic_logging,
+			 program_counter_canonicalize
 
 ===========================================
