@@ -43,11 +43,11 @@ module mkCache(Cache);
 
   rule bram_to_hitQ if (mshr == HitQ);
     Vector#(16, Word) line <- cache_data.portA.response.get();
-    //$display("Line ", fshow(line));
+    //$display("Line: ", fshow(line));
     let req_offset = loadOffsetQ.first();
     loadOffsetQ.deq();
     Word data = line[req_offset];
-    //$display("Data ", data);
+    //$display("Return data: ", fshow(data));
     hitQ.enq(data);
     mshr <= Ready;
   endrule
@@ -118,9 +118,16 @@ module mkCache(Cache);
       cache_data.portA.request.put(BRAMRequest{write: True,   //write new data to cache
                          responseOnWrite: False,
                          address: req_idx,
-                         datain: new_line});
+                        datain: new_line});
+      //hitQ.enq(0);
     end
     else begin     //load instruction
+
+      //$display("Offset: ", fshow(req_offset));
+      //$display("Idx: ", fshow(req_idx));
+      //$display("Tag: ", fshow(req_tag));
+      //$display("New Line: ", fshow(new_line));
+
       dirtyArray[req_idx] <= False;
       cache_data.portA.request.put(BRAMRequest{write: True,   //write new data to cache
                          responseOnWrite: False,
@@ -128,6 +135,7 @@ module mkCache(Cache);
                          datain: new_line});
 
       Word return_data = new_line[req_offset];
+      //$display("Return data: ", fshow(return_data));
       hitQ.enq(return_data);
     end
 
@@ -183,6 +191,7 @@ module mkCache(Cache);
                         datain: line});
     
     storeQ.deq();
+    //hitQ.enq(0);
     mshr <= Ready;
   endrule
 

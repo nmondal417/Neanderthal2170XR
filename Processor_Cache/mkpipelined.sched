@@ -37,6 +37,10 @@ Conflicts: getMMIOResp
  
 Rule schedule
 -------------
+Rule: doTic
+Predicate: True
+Blocking rules: (none)
+ 
 Rule: do_tic_logging
 Predicate: True
 Blocking rules: (none)
@@ -121,11 +125,11 @@ Predicate: d2e.i_notEmpty &&
 			      3'd3))
 			    ? {d2e.first[213:194], 12'b0}
 			    : ((d2e.first[217] &&
-				((d2e_first____d339(...)[217]
-				  ? d2e_first____d339(...)[216:214]
+				((d2e_first____d223(...)[217]
+				  ? d2e_first____d223(...)[216:214]
 				  : (_ :: Bit 3)) ==
 				 3'd4))
-			       ? sext {d2e.first[213], d2e.first[201:194], d2e_first____d339(...)[202], d2e_first____d339(...)[212:203], 1'b0}
+			       ? sext {d2e.first[213], d2e.first[201:194], d2e_first____d223(...)[202], d2e_first____d223(...)[212:203], 1'b0}
 			       : 32'd0))))))[31:2] ==
 		 30'd1006649341) ||
 		((d2e.first[116:85] +
@@ -154,11 +158,11 @@ Predicate: d2e.i_notEmpty &&
 			      3'd3))
 			    ? {d2e.first[213:194], 12'b0}
 			    : ((d2e.first[217] &&
-				((d2e_first____d339(...)[217]
-				  ? d2e_first____d339(...)[216:214]
+				((d2e_first____d223(...)[217]
+				  ? d2e_first____d223(...)[216:214]
 				  : (_ :: Bit 3)) ==
 				 3'd4))
-			       ? sext {d2e.first[213], d2e.first[201:194], d2e_first____d339(...)[202], d2e_first____d339(...)[212:203], 1'b0}
+			       ? sext {d2e.first[213], d2e.first[201:194], d2e_first____d223(...)[202], d2e_first____d223(...)[212:203], 1'b0}
 			       : 32'd0))))))[31:2] ==
 		 30'd1006649342))
 	       ? ! toMMIO_rv.port0__read[68]
@@ -168,8 +172,8 @@ Blocking rules: (none)
  
 Rule: writeback
 Predicate: e2w.i_notEmpty &&
-	   retired.i_notFull &&
 	   (e2w.first[54] || (! (e2w.first[52:51] == 2'b0)) ||
+	    ((! e2w.first[120]) && (! e2w.first[84])) ||
 	    ((e2w.i_notEmpty && e2w.first[120])
 	     ? fromMMIO_rv.port1__read[68]
 	     : fromDmem_rv.port1__read[68])) &&
@@ -201,6 +205,7 @@ Blocking rules: (none)
 Logical execution order: getIResp,
 			 getDResp,
 			 getMMIOResp,
+			 doTic,
 			 fetch,
 			 getIReq,
 			 decode,

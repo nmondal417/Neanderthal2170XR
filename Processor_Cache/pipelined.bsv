@@ -98,7 +98,9 @@ module mkpipelined(RVIfc);
     FIFO#(Mem) fromDmem <- mkBypassFIFO;
     FIFO#(Mem) toMMIO <- mkBypassFIFO;
     FIFO#(Mem) fromMMIO <- mkBypassFIFO;
-    let debug = True;
+    let debug = False;
+    let mmio_debug = False;
+    let konata_debug = False;
 
     Reg#(Bit#(32)) program_counter <- mkReg(32'h0000000);
     Vector#(32, Reg#(Bit#(32))) rf <- replicateM(mkReg(0));
@@ -129,6 +131,17 @@ module mkpipelined(RVIfc);
 
     
     Reg#(Bool) starting <- mkReg(True);
+
+    Bit#(32) maxCount = 600;
+    Reg#(Bit#(32)) count <- mkReg(0);
+
+    rule doTic;
+        if (debug && count < maxCount) begin
+            $display("Cycle %d", count);
+        end
+        count <= count + 1;
+    endrule
+
 	rule do_tic_logging;
         if (starting) begin
             let f <- $fopen(dumpFile, "w") ;
@@ -144,8 +157,8 @@ module mkpipelined(RVIfc);
         // Below is the code to support Konata's visualization
         program_counter <= program_counter + 4;
 		let iid <- fetch1Konata(lfh, fresh_id, 0);
-        labelKonataLeft(lfh, iid, $format("PC %x",program_counter));
-        if(debug) $display("Fetch %x", program_counter);
+        if (konata_debug) labelKonataLeft(lfh, iid, $format("PC %x",program_counter));
+        if(debug && count < maxCount) $display("Fetch %x", program_counter);
         toImem.enq(Mem{byte_en: 0,  addr: program_counter, data: 0});
         f2d.enq(F2D{pc: program_counter, ppc: program_counter + 4, epoch: mEpoch, k_id: iid});
         // This will likely end with something like:
@@ -176,10 +189,10 @@ module mkpipelined(RVIfc);
             let dInst = decodeInst(imemInst);
             
             //Debug 
-            if (debug) $display("[Decode] ", fshow(dInst));
-            decodeKonata(lfh, current_id);
-            labelKonataLeft(lfh,current_id, $format("Instr bits: %x",dInst.inst));
-            labelKonataLeft(lfh, current_id, $format(" Potential r1: %x, Potential r2: %x" , rs1, rs2));
+            if (debug && count < maxCount) $display(pc, " [Decode] ", fshow(dInst));
+            if (konata_debug) decodeKonata(lfh, current_id);
+            if (konata_debug) labelKonataLeft(lfh,current_id, $format("Instr bits: %x",dInst.inst));
+            if (konata_debug) labelKonataLeft(lfh, current_id, $format(" Potential r1: %x, Potential r2: %x" , rs1, rs2));
             
             if(!( scoreboard.search1(rs1_idx) || scoreboard.search2(rs2_idx) || scoreboard.search3(rd_idx))) begin     
                if(dInst.valid_rd && rd_idx != 0) begin
@@ -221,8 +234,8 @@ module mkpipelined(RVIfc);
         let rd_idx = d2e_data.rd_idx;
         let current_id = d2e_data.k_id;
 
-        if (debug) $display("[Execute] ", fshow(dInst));
-		executeKonata(lfh, current_id);
+        if (debug && count < maxCount) $display(pc, " [Execute] ", fshow(dInst));
+		if (konata_debug) executeKonata(lfh, current_id);
         //Execute 
         if (dEpoch == mEpoch) begin 
         
@@ -234,6 +247,11 @@ module mkpipelined(RVIfc);
             let size = funct3[1:0];
             let addr = rv1 + imm;
             Bit#(2) offset = addr[1:0];
+
+            if (debug && count < maxCount) $display(pc, "Register Source 1: %d", rv1);
+            if (debug && count < maxCount) $display(pc, "Register Source 2: %d", rv2);
+            if (debug && count < maxCount) $display(pc, "Immediate: %d", imm);
+
             if (isMemoryInst(dInst)) begin
                 // Technical details for load byte/halfword/word
                 let shift_amount = {offset, 3'b0};
@@ -246,34 +264,41 @@ module mkpipelined(RVIfc);
                 data = rv2 << shift_amount;
                 addr = {addr[31:2], 2'b0};
                 isUnsigned = funct3[2];
-                let type_mem = (dInst.inst[5] == 1) ? byte_en : 0;
+                //let type_mem = (dInst.inst[5] == 1) ? byte_en : 0;
+                let type_mem = (dInst.inst[5] == 1) ? 1 : 0;
                 let req = Mem {byte_en : type_mem,
                         addr : addr,
                         data : data};
+                
+                //if (debug && count < maxCount) $display(pc, "Register Source 1: %d", rv1);
+                if (debug && count < maxCount) $display(pc, "Memory address ", addr);
+                //if (debug && count < maxCount) $display(pc, "Register Source 2: %d", rv2);
+                //if (debug && count < maxCount) $display(pc, "Immediate: %d", imm);
                 if (isMMIO(addr)) begin 
-                    if (debug) $display("[Execute] MMIO", fshow(req));
+                    if (mmio_debug) $display(count, " [Execute] MMIO", fshow(req));
                     toMMIO.enq(req);
-                    labelKonataLeft(lfh,current_id, $format(" MMIO ", fshow(req)));
+                    if (konata_debug) labelKonataLeft(lfh,current_id, $format(" MMIO ", fshow(req)));
                     mmio = True;
                 end else begin 
-                    labelKonataLeft(lfh,current_id, $format(" MEM ", fshow(req)));
+                    if (konata_debug) labelKonataLeft(lfh,current_id, $format(" MEM ", fshow(req)));
                     toDmem.enq(req);
                 end
             end
             else if (isControlInst(dInst)) begin
-                    labelKonataLeft(lfh,current_id, $format(" Ctrl instr "));
+                    if (konata_debug) labelKonataLeft(lfh,current_id, $format(" Ctrl instr "));
                     data = pc + 4;
             end else begin 
-                labelKonataLeft(lfh,current_id, $format(" Standard instr "));
+                if (konata_debug) labelKonataLeft(lfh,current_id, $format(" Standard instr "));
             end
             let controlResult = execControl32(dInst.inst, rv1, rv2, imm, pc);
             let nextPc = controlResult.nextPC;
             if(ppc != nextPc) begin
+                if(debug && count < maxCount) $display("New PC: ", fshow(nextPc));
                 mEpoch <= mEpoch + 1;
                 program_counter <= nextPc;
             end 
             
-            labelKonataLeft(lfh,current_id, $format(" ALU output: %x" , data));
+            if (konata_debug) labelKonataLeft(lfh,current_id, $format(" ALU output: %x" , data));
             e2w.enq(E2W{mem_business: MemBusiness { isUnsigned : unpack(isUnsigned), size : size, offset : offset, mmio: mmio}, data: data, dinst: dInst, k_id: current_id});
         end else begin 
             if(dInst.valid_rd && rd_idx != 0) begin 
@@ -292,10 +317,11 @@ module mkpipelined(RVIfc);
         let dInst = e2w_data.dinst;
         let current_id = e2w_data.k_id;
        
-        writebackKonata(lfh,current_id);
-        retired.enq(current_id);
+        if (konata_debug) writebackKonata(lfh,current_id);
+        if (konata_debug) retired.enq(current_id);
         let fields = getInstFields(dInst.inst);
-        if (isMemoryInst(dInst)) begin // (* // write_val *)
+        if (isMemoryInst(dInst) && (mem_business.mmio || dInst.valid_rd)) begin // (* // write_val *)
+            
             let resp = ?;
 		    if (mem_business.mmio) begin 
                 resp = fromMMIO.first();
@@ -304,6 +330,9 @@ module mkpipelined(RVIfc);
                 resp = fromDmem.first();
 		        fromDmem.deq();
 		    end
+
+            if(debug && count < maxCount) $display("Mem Inst: ", fshow(resp));
+
             let mem_data = resp.data;
             mem_data = mem_data >> {mem_business.offset ,3'b0};
             case ({pack(mem_business.isUnsigned), mem_business.size}) matches
@@ -314,9 +343,9 @@ module mkpipelined(RVIfc);
 	     	3'b010 : data = mem_data;
              endcase
 		end
-		if(debug) $display("[Writeback]", fshow(dInst));
+		if(debug && count < maxCount) $display("[Writeback]", fshow(dInst));
         if (!dInst.legal) begin
-			if (debug) $display("[Writeback] Illegal Inst, Drop and fault: ", fshow(dInst));
+			if(debug && count < maxCount) $display("[Writeback] Illegal Inst, Drop and fault: ", fshow(dInst));
 			program_counter <= 0;	// Fault
 	    end
 		if (dInst.valid_rd) begin
