@@ -61,121 +61,123 @@ Predicate: f2d.i_notEmpty &&
 	       scoreboard.search2(fromImem_rv.port1__read[24:20]) ||
 	       scoreboard.search3(fromImem_rv.port1__read[11:7]) ||
 	       d2e.i_notFull)
-	    : fromImem_rv.port1__read[68]) &&
+	    : (fromImem_rv.port1__read[68] && squashed.i_notFull)) &&
 	   (! starting)
 Blocking rules: (none)
  
 Rule: execute
 Predicate: d2e.i_notEmpty &&
-	   ((! (d2e.first[117] == mEpoch)) ||
-	    (e2w.i_notFull &&
-	     (d2e.first[188] || (! (d2e.first[186:185] == 2'b0)) ||
-	      ((((d2e.first[116:85] +
-		  ((d2e.first[217] &&
-		    ((d2e.first[217]
-		      ? d2e.first[216:214]
-		      : (_ :: Bit 3)) ==
-		     3'd0))
-		   ? sext d2e.first[213:202]
-		   : ((d2e.first[217] &&
-		       ((d2e.first[217]
-			 ? d2e.first[216:214]
-			 : (_ :: Bit 3)) ==
-			3'd1))
-		      ? sext {d2e.first[213:207], d2e.first[193:189]}
-		      : ((d2e.first[217] &&
-			  ((d2e.first[217]
-			    ? d2e.first[216:214]
-			    : (_ :: Bit 3)) ==
-			   3'd2))
-			 ? sext {d2e.first[213], d2e.first[189], d2e.first[212:207], d2e.first[193:190], 1'b0}
-			 : ((d2e.first[217] &&
-			     ((d2e.first[217]
-			       ? d2e.first[216:214]
-			       : (_ :: Bit 3)) ==
-			      3'd3))
-			    ? {d2e.first[213:194], 12'b0}
-			    : ((d2e.first[217] &&
-				((d2e.first[217]
-				  ? d2e.first[216:214]
-				  : (_ :: Bit 3)) ==
-				 3'd4))
-			       ? sext {d2e.first[213], d2e.first[201:194], d2e.first[202], d2e.first[212:203], 1'b0}
-			       : 32'd0))))))[31:2] ==
-		 30'd1006649340) ||
-		((d2e.first[116:85] +
-		  ((d2e.first[217] &&
-		    ((d2e.first[217]
-		      ? d2e.first[216:214]
-		      : (_ :: Bit 3)) ==
-		     3'd0))
-		   ? sext d2e.first[213:202]
-		   : ((d2e.first[217] &&
-		       ((d2e.first[217]
-			 ? d2e.first[216:214]
-			 : (_ :: Bit 3)) ==
-			3'd1))
-		      ? sext {d2e.first[213:207], d2e.first[193:189]}
-		      : ((d2e.first[217] &&
-			  ((d2e.first[217]
-			    ? d2e.first[216:214]
-			    : (_ :: Bit 3)) ==
-			   3'd2))
-			 ? sext {d2e.first[213], d2e.first[189], d2e.first[212:207], d2e.first[193:190], 1'b0}
-			 : ((d2e.first[217] &&
-			     ((d2e.first[217]
-			       ? d2e.first[216:214]
-			       : (_ :: Bit 3)) ==
-			      3'd3))
-			    ? {d2e.first[213:194], 12'b0}
-			    : ((d2e.first[217] &&
-				((d2e_first____d234(...)[217]
-				  ? d2e_first____d234(...)[216:214]
-				  : (_ :: Bit 3)) ==
-				 3'd4))
-			       ? sext {d2e.first[213], d2e.first[201:194], d2e_first____d234(...)[202], d2e_first____d234(...)[212:203], 1'b0}
-			       : 32'd0))))))[31:2] ==
-		 30'd1006649341) ||
-		((d2e.first[116:85] +
-		  ((d2e.first[217] &&
-		    ((d2e.first[217]
-		      ? d2e.first[216:214]
-		      : (_ :: Bit 3)) ==
-		     3'd0))
-		   ? sext d2e.first[213:202]
-		   : ((d2e.first[217] &&
-		       ((d2e.first[217]
-			 ? d2e.first[216:214]
-			 : (_ :: Bit 3)) ==
-			3'd1))
-		      ? sext {d2e.first[213:207], d2e.first[193:189]}
-		      : ((d2e.first[217] &&
-			  ((d2e.first[217]
-			    ? d2e.first[216:214]
-			    : (_ :: Bit 3)) ==
-			   3'd2))
-			 ? sext {d2e.first[213], d2e.first[189], d2e.first[212:207], d2e.first[193:190], 1'b0}
-			 : ((d2e.first[217] &&
-			     ((d2e.first[217]
-			       ? d2e.first[216:214]
-			       : (_ :: Bit 3)) ==
-			      3'd3))
-			    ? {d2e.first[213:194], 12'b0}
-			    : ((d2e.first[217] &&
-				((d2e_first____d234(...)[217]
-				  ? d2e_first____d234(...)[216:214]
-				  : (_ :: Bit 3)) ==
-				 3'd4))
-			       ? sext {d2e.first[213], d2e.first[201:194], d2e_first____d234(...)[202], d2e_first____d234(...)[212:203], 1'b0}
-			       : 32'd0))))))[31:2] ==
-		 30'd1006649342))
-	       ? ! toMMIO_rv.port0__read[68]
-	       : (! toDmem_rv.port0__read[68]))))) &&
+	   ((d2e.first[117] == mEpoch)
+	    ? e2w.i_notFull &&
+	      (d2e.first[188] || (! (d2e.first[186:185] == 2'b0)) ||
+	       ((((d2e.first[116:85] +
+		   ((d2e.first[217] &&
+		     ((d2e.first[217]
+		       ? d2e.first[216:214]
+		       : (_ :: Bit 3)) ==
+		      3'd0))
+		    ? sext d2e.first[213:202]
+		    : ((d2e.first[217] &&
+			((d2e.first[217]
+			  ? d2e.first[216:214]
+			  : (_ :: Bit 3)) ==
+			 3'd1))
+		       ? sext {d2e.first[213:207], d2e.first[193:189]}
+		       : ((d2e.first[217] &&
+			   ((d2e.first[217]
+			     ? d2e.first[216:214]
+			     : (_ :: Bit 3)) ==
+			    3'd2))
+			  ? sext {d2e.first[213], d2e.first[189], d2e.first[212:207], d2e.first[193:190], 1'b0}
+			  : ((d2e.first[217] &&
+			      ((d2e.first[217]
+				? d2e.first[216:214]
+				: (_ :: Bit 3)) ==
+			       3'd3))
+			     ? {d2e.first[213:194], 12'b0}
+			     : ((d2e.first[217] &&
+				 ((d2e.first[217]
+				   ? d2e.first[216:214]
+				   : (_ :: Bit 3)) ==
+				  3'd4))
+				? sext {d2e.first[213], d2e.first[201:194], d2e.first[202], d2e.first[212:203], 1'b0}
+				: 32'd0))))))[31:2] ==
+		  30'd1006649340) ||
+		 ((d2e.first[116:85] +
+		   ((d2e.first[217] &&
+		     ((d2e.first[217]
+		       ? d2e.first[216:214]
+		       : (_ :: Bit 3)) ==
+		      3'd0))
+		    ? sext d2e.first[213:202]
+		    : ((d2e.first[217] &&
+			((d2e.first[217]
+			  ? d2e.first[216:214]
+			  : (_ :: Bit 3)) ==
+			 3'd1))
+		       ? sext {d2e.first[213:207], d2e.first[193:189]}
+		       : ((d2e.first[217] &&
+			   ((d2e.first[217]
+			     ? d2e.first[216:214]
+			     : (_ :: Bit 3)) ==
+			    3'd2))
+			  ? sext {d2e.first[213], d2e.first[189], d2e.first[212:207], d2e.first[193:190], 1'b0}
+			  : ((d2e.first[217] &&
+			      ((d2e.first[217]
+				? d2e.first[216:214]
+				: (_ :: Bit 3)) ==
+			       3'd3))
+			     ? {d2e.first[213:194], 12'b0}
+			     : ((d2e.first[217] &&
+				 ((d2e_first____d236(...)[217]
+				   ? d2e_first____d236(...)[216:214]
+				   : (_ :: Bit 3)) ==
+				  3'd4))
+				? sext {d2e.first[213], d2e.first[201:194], d2e_first____d236(...)[202], d2e_first____d236(...)[212:203], 1'b0}
+				: 32'd0))))))[31:2] ==
+		  30'd1006649341) ||
+		 ((d2e.first[116:85] +
+		   ((d2e.first[217] &&
+		     ((d2e.first[217]
+		       ? d2e.first[216:214]
+		       : (_ :: Bit 3)) ==
+		      3'd0))
+		    ? sext d2e.first[213:202]
+		    : ((d2e.first[217] &&
+			((d2e.first[217]
+			  ? d2e.first[216:214]
+			  : (_ :: Bit 3)) ==
+			 3'd1))
+		       ? sext {d2e.first[213:207], d2e.first[193:189]}
+		       : ((d2e.first[217] &&
+			   ((d2e.first[217]
+			     ? d2e.first[216:214]
+			     : (_ :: Bit 3)) ==
+			    3'd2))
+			  ? sext {d2e.first[213], d2e.first[189], d2e.first[212:207], d2e.first[193:190], 1'b0}
+			  : ((d2e.first[217] &&
+			      ((d2e.first[217]
+				? d2e.first[216:214]
+				: (_ :: Bit 3)) ==
+			       3'd3))
+			     ? {d2e.first[213:194], 12'b0}
+			     : ((d2e.first[217] &&
+				 ((d2e_first____d236(...)[217]
+				   ? d2e_first____d236(...)[216:214]
+				   : (_ :: Bit 3)) ==
+				  3'd4))
+				? sext {d2e.first[213], d2e.first[201:194], d2e_first____d236(...)[202], d2e_first____d236(...)[212:203], 1'b0}
+				: 32'd0))))))[31:2] ==
+		  30'd1006649342))
+		? ! toMMIO_rv.port0__read[68]
+		: (! toDmem_rv.port0__read[68])))
+	    : squashed2.i_notFull) &&
 	   (! starting)
 Blocking rules: (none)
  
 Rule: writeback
 Predicate: e2w.i_notEmpty &&
+	   retired.i_notFull &&
 	   (e2w.first[54] || (! (e2w.first[52:51] == 2'b0)) ||
 	    ((! e2w.first[120]) && (! e2w.first[84])) ||
 	    ((e2w.i_notEmpty && e2w.first[120])
@@ -206,6 +208,10 @@ Rule: administrative_konata_flush
 Predicate: squashed.i_notEmpty
 Blocking rules: (none)
  
+Rule: administrative_konata_flush2
+Predicate: squashed2.i_notEmpty
+Blocking rules: (none)
+ 
 Logical execution order: getIResp,
 			 getDResp,
 			 getMMIOResp,
@@ -219,6 +225,7 @@ Logical execution order: getIResp,
 			 writeback,
 			 administrative_konata_commit,
 			 administrative_konata_flush,
+			 administrative_konata_flush2,
 			 do_tic_logging,
 			 program_counter_canonicalize
 

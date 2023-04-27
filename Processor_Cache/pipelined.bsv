@@ -100,7 +100,7 @@ module mkpipelined(RVIfc);
     FIFO#(Mem) fromMMIO <- mkBypassFIFO;
     let debug = False;
     let mmio_debug = False;
-    let konata_debug = False;
+    let konata_debug = True;
 
     Ehr#(2, Bit#(32)) program_counter <- mkEhr(32'h0000000);
     Vector#(32, Reg#(Bit#(32))) rf <- replicateM(mkReg(0));
@@ -128,7 +128,7 @@ module mkpipelined(RVIfc);
 	Reg#(KonataId) commit_id <- mkReg(0);
 	FIFO#(KonataId) retired <- mkFIFO;
 	FIFO#(KonataId) squashed <- mkFIFO;
-
+    FIFO#(KonataId) squashed2 <- mkFIFO;
     
     Reg#(Bool) starting <- mkReg(True);
 
@@ -202,9 +202,10 @@ module mkpipelined(RVIfc);
                fromImem.deq();
                d2e.enq(D2E{dinst: dInst, pc: pc ,ppc: ppc, epoch: fEpoch, rv1: rs1, rv2: rs2,rd_idx: rd_idx, k_id: current_id});
             end 
-        end else begin 
+        end else begin   //wrong epoch
             f2d.deq();
             fromImem.deq();
+            if (konata_debug) squashed.enq(current_id);
         end 
     endrule
 
@@ -304,6 +305,7 @@ module mkpipelined(RVIfc);
             if(dInst.valid_rd && rd_idx != 0) begin 
                 scoreboard.remove1(rd_idx);
             end
+            if (konata_debug) squashed2.enq(current_id);
         end 
 
     endrule
@@ -378,6 +380,12 @@ module mkpipelined(RVIfc);
 	rule administrative_konata_flush;
 		    squashed.deq();
 		    let f = squashed.first();
+		    squashKonata(lfh, f);
+	endrule
+
+    rule administrative_konata_flush2;
+		    squashed2.deq();
+		    let f = squashed2.first();
 		    squashKonata(lfh, f);
 	endrule
 		

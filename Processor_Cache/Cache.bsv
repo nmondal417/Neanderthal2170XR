@@ -27,7 +27,7 @@ module mkCache(Cache);
   Vector#(128, Reg#(Bool)) dirtyArray <- replicateM(mkReg(False));
 
   Reg#(ProcReq) missReq <- mkRegU;
-  Reg#(ReqStatus) mshr <- mkReg(Ready);
+  Ehr#(2, ReqStatus) mshr <- mkEhr(Ready);
 
   FIFO#(Word) hitQ <- mkBypassFIFO;
   FIFO#(OffsetSize) loadOffsetQ <- mkFIFO;
@@ -41,7 +41,7 @@ module mkCache(Cache);
 
   Ehr#(2, Bool) lockL1 <- mkEhr(False);
 
-  rule bram_to_hitQ if (mshr == HitQ);
+  rule bram_to_hitQ if (mshr[0] == HitQ);
     Vector#(16, Word) line <- cache_data.portA.response.get();
     //$display("Line: ", fshow(line));
     let req_offset = loadOffsetQ.first();
@@ -49,11 +49,11 @@ module mkCache(Cache);
     Word data = line[req_offset];
     //$display("Return data: ", fshow(data));
     hitQ.enq(data);
-    mshr <= Ready;
+    mshr[0] <= Ready;
   endrule
 
 
-  rule startMiss_BRAMReq if (mshr == StartMiss_BRAMReq);
+  rule startMiss_BRAMReq if (mshr[0] == StartMiss_BRAMReq);
     let req_idx = missReq.addr[12:6];
     let old_line_valid = validArray[req_idx];
     let old_line_dirty = dirtyArray[req_idx];
@@ -64,15 +64,15 @@ module mkCache(Cache);
                          address: req_idx,
                          datain: ?});
 
-      mshr <= StartMiss_BRAMResp;
+      mshr[0] <= StartMiss_BRAMResp;
     end
 
-    else mshr <= SendFillReq;    //if the old cache line is not dirty, then no writeback needed
+    else mshr[0] <= SendFillReq;    //if the old cache line is not dirty, then no writeback needed
 
   endrule
 
 
-  rule startMiss_BRAMResp if (mshr == StartMiss_BRAMResp);
+  rule startMiss_BRAMResp if (mshr[0] == StartMiss_BRAMResp);
     Vector#(16, Word) old_line <- cache_data.portA.response.get();  //get old cache line
     MainMemResp old_data = pack(old_line);   //convert vector of 16 words into 512 bits
 
@@ -84,20 +84,20 @@ module mkCache(Cache);
                 addr: old_addr,
                 data: old_data});
 
-    mshr <= SendFillReq;
+    mshr[0] <= SendFillReq;
 
   endrule
 
-  rule sendFillReq if (mshr == SendFillReq);
+  rule sendFillReq if (mshr[0] == SendFillReq);
     memReqQ.enq(MainMemReq {write: 0,              //load new line from memory
                 addr: missReq.addr[31:6],          //take top 26 bits (the line address)
                 data: ?});
 
-    mshr <= WaitFillResp;
+    mshr[0] <= WaitFillResp;
   endrule
 
 
-  rule waitFillResp if (mshr == WaitFillResp);
+  rule waitFillResp if (mshr[0] == WaitFillResp);
     memRespQ.deq();
     MainMemResp mem_data = memRespQ.first();
     //$display("Mem Resp ", mem_data);
@@ -139,7 +139,7 @@ module mkCache(Cache);
       hitQ.enq(return_data);
     end
 
-    mshr <= Ready;
+    mshr[0] <= Ready;
 
   endrule
 
@@ -174,7 +174,7 @@ module mkCache(Cache);
 
   endrule */
 
-  rule waitStore if (mshr == WaitStore);
+  rule waitStore if (mshr[0] == WaitStore);
     Vector#(16, Word) line <- cache_data.portA.response.get();
     ProcReq req = storeQ.first();
 
@@ -192,18 +192,18 @@ module mkCache(Cache);
     
     storeQ.deq();
     //hitQ.enq(0);
-    mshr <= Ready;
+    mshr[0] <= Ready;
   endrule
-
+/*
   rule displayPercents;
     if (missCount == 100) begin
-      //$display("Misses: %d Hits: %d", missCount, hitCount);
+      $display("Misses: %d Hits: %d", missCount, hitCount);
     end
   endrule
-
+*/
   //rule clearL1Lock; lockL1[1] <= False; endrule
 
-  method Action putFromProc(ProcReq req) if (mshr == Ready);
+  method Action putFromProc(ProcReq req) if (mshr[1] == Ready);
     let req_store = req.write; //1 if store, 0 if load
     Word req_addr = req.addr;
     Word req_data = req.data;
@@ -224,13 +224,13 @@ module mkCache(Cache);
                           responseOnWrite: False,
                           address: req_idx,
                           datain: ?});
-        mshr <= WaitStore;
+        mshr[1] <= WaitStore;
         storeQ.enq(req);
       end
       else begin
         //$display("Cache Store Miss");
         missCount <= missCount + 1;
-        mshr <= StartMiss_BRAMReq;
+        mshr[1] <= StartMiss_BRAMReq;
         missReq <= req;
       end
     end
@@ -256,12 +256,12 @@ module mkCache(Cache);
 
         loadOffsetQ.enq(req_offset);   //store the line offset so that it can be used later
 
-        mshr <= HitQ;
+        mshr[1] <= HitQ;
       end
       else begin     //cache miss
         //$display("Cache Load Miss");
         missCount <= missCount + 1;
-        mshr <= StartMiss_BRAMReq;
+        mshr[1] <= StartMiss_BRAMReq;
         missReq <= req;
       end
     end
