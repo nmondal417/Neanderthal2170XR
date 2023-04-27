@@ -63,33 +63,32 @@ interface Scoreboard;
     method Bool search2(Bit#(5) rs2_idx);
     method Bool search3(Bit#(5) rd_idx);
 endinterface
-/*
-(* synthesize *)
+
 module mkScoreboard(Scoreboard);
     Vector#(32, Ehr#(3, Bool)) sb <- replicateM(mkEhr(False)); 
     
     method Action insert(Bit#(5) rd_idx);
-        sb[rd_idx][0] <= True;
+        sb[rd_idx][2] <= True;
     endmethod
     method Action remove1(Bit#(5) rd_idx);
-        sb[rd_idx][1] <= False;
+        sb[rd_idx][0] <= False;
     endmethod
     method Action remove2(Bit#(5) rd_idx);
-        sb[rd_idx][2] <= False;
+        sb[rd_idx][1] <= False;
     endmethod
     method Bool search1(Bit#(5) rsrc_idx1);
-        return sb[rsrc_idx1][0];
+        return sb[rsrc_idx1][2];
     endmethod
     method Bool search2(Bit#(5) rsrc_idx2);
-        return sb[rsrc_idx2][0];
+        return sb[rsrc_idx2][2];
     endmethod 
     method Bool search3(Bit#(5) rd_idx);
-        return sb[rd_idx][0];
+        return sb[rd_idx][2];
     endmethod 
 
     
 endmodule
-*/
+
 (* synthesize *)
 module mkpipelined(RVIfc);
     // Interface with memory and devices
@@ -104,9 +103,8 @@ module mkpipelined(RVIfc);
     let konata_debug = True;
 
     Ehr#(2, Bit#(32)) program_counter <- mkEhr(32'h0000000);
-    //Vector#(32, Reg#(Bit#(32))) rf <- replicateM(mkReg(0));
     Vector#(32, Ehr#(2, Bit#(32))) rf <- replicateM(mkEhr(0));
-    Vector#(32, Ehr#(3, Bool)) scoreboard <- replicateM(mkEhr(False));
+    //Vector#(32, Ehr#(3, Bool)) scoreboard <- replicateM(mkEhr(False));
     //Control Registers
     // Reg#(Bit#(32)) rv1 <- mkReg(0);
 	// Reg#(Bit#(32)) rv2 <- mkReg(0);
@@ -123,7 +121,7 @@ module mkpipelined(RVIfc);
     //Reg#(Bit#(1)) mEpoch <- mkReg(0);
     Ehr#(2, Bit#(1)) mEpoch <- mkEhr(0);
      //Scoreboard
-    //Scoreboard scoreboard <- mkScoreboard;
+    Scoreboard scoreboard <- mkScoreboard;
 
 	// Code to support Konata visualization
     String dumpFile = "output.log" ;
@@ -198,11 +196,9 @@ module mkpipelined(RVIfc);
             if (konata_debug) labelKonataLeft(lfh,current_id, $format("Instr bits: %x",dInst.inst));
             if (konata_debug) labelKonataLeft(lfh, current_id, $format(" Potential r1: %x, Potential r2: %x" , rs1, rs2));
             
-            //if(!( scoreboard.search1(rs1_idx) || scoreboard.search2(rs2_idx) || scoreboard.search3(rd_idx))) begin 
-            if(!( scoreboard[rs1_idx][2] || scoreboard[rs2_idx][2] || scoreboard[rd_idx][2])) begin 
+            if(!( scoreboard.search1(rs1_idx) || scoreboard.search2(rs2_idx) || scoreboard.search3(rd_idx))) begin 
                if(dInst.valid_rd && rd_idx != 0) begin
-                    //scoreboard.insert(rd_idx);
-                    scoreboard[rd_idx][2] <= True;
+                    scoreboard.insert(rd_idx);
                end 
                f2d.deq();
                fromImem.deq();
@@ -309,8 +305,7 @@ module mkpipelined(RVIfc);
             e2w.enq(E2W{mem_business: MemBusiness { isUnsigned : unpack(isUnsigned), size : size, offset : offset, mmio: mmio}, data: data, dinst: dInst, k_id: current_id});
         end else begin 
             if(dInst.valid_rd && rd_idx != 0) begin 
-                //scoreboard.remove1(rd_idx);
-                scoreboard[rd_idx][1] <= False;
+                scoreboard.remove1(rd_idx);
             end
             if (konata_debug) squashed2.enq(current_id);
         end 
@@ -361,8 +356,7 @@ module mkpipelined(RVIfc);
             let rd_idx = fields.rd;
             if (rd_idx != 0) begin 
                 rf[rd_idx][0] <=data;
-                //scoreboard.remove2(rd_idx);
-                scoreboard[rd_idx][0] <= False;
+                scoreboard.remove2(rd_idx);
             end
 		end
         
