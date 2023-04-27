@@ -63,7 +63,7 @@ interface Scoreboard;
     method Bool search2(Bit#(5) rs2_idx);
     method Bool search3(Bit#(5) rd_idx);
 endinterface
-
+/*
 (* synthesize *)
 module mkScoreboard(Scoreboard);
     Vector#(32, Ehr#(3, Bool)) sb <- replicateM(mkEhr(False)); 
@@ -89,6 +89,7 @@ module mkScoreboard(Scoreboard);
 
     
 endmodule
+*/
 (* synthesize *)
 module mkpipelined(RVIfc);
     // Interface with memory and devices
@@ -103,7 +104,9 @@ module mkpipelined(RVIfc);
     let konata_debug = True;
 
     Ehr#(2, Bit#(32)) program_counter <- mkEhr(32'h0000000);
-    Vector#(32, Reg#(Bit#(32))) rf <- replicateM(mkReg(0));
+    //Vector#(32, Reg#(Bit#(32))) rf <- replicateM(mkReg(0));
+    Vector#(32, Ehr#(2, Bit#(32))) rf <- replicateM(mkEhr(0));
+    Vector#(32, Ehr#(3, Bool)) scoreboard <- replicateM(mkEhr(False));
     //Control Registers
     // Reg#(Bit#(32)) rv1 <- mkReg(0);
 	// Reg#(Bit#(32)) rv2 <- mkReg(0);
@@ -117,9 +120,10 @@ module mkpipelined(RVIfc);
     FIFO#(E2W) e2w <- mkFIFO;
 
     //Epoch
-    Reg#(Bit#(1)) mEpoch <- mkReg(0);
+    //Reg#(Bit#(1)) mEpoch <- mkReg(0);
+    Ehr#(2, Bit#(1)) mEpoch <- mkEhr(0);
      //Scoreboard
-    Scoreboard scoreboard <- mkScoreboard;
+    //Scoreboard scoreboard <- mkScoreboard;
 
 	// Code to support Konata visualization
     String dumpFile = "output.log" ;
@@ -160,7 +164,7 @@ module mkpipelined(RVIfc);
         if (konata_debug) labelKonataLeft(lfh, iid, $format("PC %x",program_counter[0]));
         if(debug && count < maxCount) $display("Fetch %x", program_counter[0]);
         toImem.enq(Mem{byte_en: 0,  addr: program_counter[0], data: 0});
-        f2d.enq(F2D{pc: program_counter[0], ppc: program_counter[0] + 4, epoch: mEpoch, k_id: iid});
+        f2d.enq(F2D{pc: program_counter[0], ppc: program_counter[0] + 4, epoch: mEpoch[0], k_id: iid});
         // This will likely end with something like:
         // f2d.enq(F2D{ ..... k_id: iid});
         // iid is the unique identifier used by konata, that we will pass around everywhere for each instruction
@@ -179,13 +183,13 @@ module mkpipelined(RVIfc);
         let ppc = f2d_data.ppc;
         let fEpoch = f2d_data.epoch;
         let current_id = f2d_data.k_id;
-        if(fEpoch == mEpoch) begin 
+        if(fEpoch == mEpoch[1]) begin 
             
             let rs1_idx = getInstFields(imemInst).rs1;
             let rs2_idx = getInstFields(imemInst).rs2;
             let rd_idx = getInstFields(imemInst).rd;
-		    let rs1 = (rs1_idx == 0 ? 0 : rf[rs1_idx]);
-		    let rs2 = (rs2_idx == 0 ? 0 : rf[rs2_idx]);
+		    let rs1 = (rs1_idx == 0 ? 0 : rf[rs1_idx][1]);
+		    let rs2 = (rs2_idx == 0 ? 0 : rf[rs2_idx][1]);
             let dInst = decodeInst(imemInst);
             
             //Debug 
@@ -194,9 +198,11 @@ module mkpipelined(RVIfc);
             if (konata_debug) labelKonataLeft(lfh,current_id, $format("Instr bits: %x",dInst.inst));
             if (konata_debug) labelKonataLeft(lfh, current_id, $format(" Potential r1: %x, Potential r2: %x" , rs1, rs2));
             
-            if(!( scoreboard.search1(rs1_idx) || scoreboard.search2(rs2_idx) || scoreboard.search3(rd_idx))) begin     
+            //if(!( scoreboard.search1(rs1_idx) || scoreboard.search2(rs2_idx) || scoreboard.search3(rd_idx))) begin 
+            if(!( scoreboard[rs1_idx][2] || scoreboard[rs2_idx][2] || scoreboard[rd_idx][2])) begin 
                if(dInst.valid_rd && rd_idx != 0) begin
-                    scoreboard.insert(rd_idx);
+                    //scoreboard.insert(rd_idx);
+                    scoreboard[rd_idx][2] <= True;
                end 
                f2d.deq();
                fromImem.deq();
@@ -238,7 +244,7 @@ module mkpipelined(RVIfc);
         if (debug && count < maxCount) $display(pc, " [Execute] ", fshow(dInst));
 		if (konata_debug) executeKonata(lfh, current_id);
         //Execute 
-        if (dEpoch == mEpoch) begin 
+        if (dEpoch == mEpoch[0]) begin 
         
             let imm = getImmediate(dInst);
             Bool mmio = False;
@@ -295,7 +301,7 @@ module mkpipelined(RVIfc);
             let nextPc = controlResult.nextPC;
             if(ppc != nextPc) begin
                 if(debug && count < maxCount) $display("New PC: ", fshow(nextPc));
-                mEpoch <= mEpoch + 1;
+                mEpoch[0] <= mEpoch[0] + 1;
                 program_counter[1] <= nextPc;
             end 
             
@@ -303,7 +309,8 @@ module mkpipelined(RVIfc);
             e2w.enq(E2W{mem_business: MemBusiness { isUnsigned : unpack(isUnsigned), size : size, offset : offset, mmio: mmio}, data: data, dinst: dInst, k_id: current_id});
         end else begin 
             if(dInst.valid_rd && rd_idx != 0) begin 
-                scoreboard.remove1(rd_idx);
+                //scoreboard.remove1(rd_idx);
+                scoreboard[rd_idx][1] <= False;
             end
             if (konata_debug) squashed2.enq(current_id);
         end 
@@ -353,8 +360,9 @@ module mkpipelined(RVIfc);
 		if (dInst.valid_rd) begin
             let rd_idx = fields.rd;
             if (rd_idx != 0) begin 
-                rf[rd_idx] <=data;
-                scoreboard.remove2(rd_idx);
+                rf[rd_idx][0] <=data;
+                //scoreboard.remove2(rd_idx);
+                scoreboard[rd_idx][0] <= False;
             end
 		end
         
