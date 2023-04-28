@@ -47,7 +47,7 @@ module mkBeveren(Empty);
        if (verbose) $display("Got response\n");
        let resp1 <- cache.getToProc() ;
        let resp2 <- mainRef.get();
-       if (resp1 != resp2) begin
+       if (resp1[64:33] != resp2) begin
            $display("The cache answered %x instead of %x\n", resp1, resp2);
            $display("FAILED\n");
            $finish;
