@@ -93,17 +93,25 @@ Predicate: cache_cache_data_serverAdapter_s1[1] &&
 	    (! cache_cache_data_serverAdapter_outData_ff.i_notFull))
 Blocking rules: (none)
  
+Rule: cache_mshr_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
 Rule: cache_lockL1_canonicalize
 Predicate: True
 Blocking rules: (none)
  
 Rule: cache_bram_to_hitQ
-Predicate: cache_loadOffsetQ_rv.port1__read[4] &&
-	   cache_cache_data_serverAdapter_outData_beforeDeq.read &&
+Predicate: cache_cache_data_serverAdapter_outData_beforeDeq.read &&
 	   (cache_cache_data_serverAdapter_outData_ff.i_notEmpty ||
 	    cache_cache_data_serverAdapter_outData_enqw.whas) &&
-	   (! cache_hitQ_rv.port0__read[32]) &&
-	   (cache_mshr == 3'd5)
+	   cache_loadOffsetQ.i_notEmpty &&
+	   (! cache_hitQ_rv.port0__read[65]) &&
+	   (((cache_mshr_readBeforeLaterWrites_0.read &&
+	      cache_mshr_readBeforeLaterWrites_1.read)
+	     ? cache_mshr_register
+	     : (_ :: Bit 3)) ==
+	    3'd5)
 Blocking rules: (none)
  
 Rule: cache_startMiss_BRAMReq
@@ -366,7 +374,11 @@ Predicate: ((! (PrimArrayDynSelect (PrimBuildArray cache_dirtyArray_0
 						   cache_validArray_127)
 				   cache_missReq[44:38])) ||
 	    (cache_cache_data_serverAdapter_cnt .< 3'd3)) &&
-	   (cache_mshr == 3'd1)
+	   (((cache_mshr_readBeforeLaterWrites_0.read &&
+	      cache_mshr_readBeforeLaterWrites_1.read)
+	     ? cache_mshr_register
+	     : (_ :: Bit 3)) ==
+	    3'd1)
 Blocking rules: (none)
  
 Rule: cache_startMiss_BRAMResp
@@ -374,18 +386,31 @@ Predicate: cache_cache_data_serverAdapter_outData_beforeDeq.read &&
 	   (cache_cache_data_serverAdapter_outData_ff.i_notEmpty ||
 	    cache_cache_data_serverAdapter_outData_enqw.whas) &&
 	   cache_memReqQ.i_notFull &&
-	   (cache_mshr == 3'd2)
+	   (((cache_mshr_readBeforeLaterWrites_0.read &&
+	      cache_mshr_readBeforeLaterWrites_1.read)
+	     ? cache_mshr_register
+	     : (_ :: Bit 3)) ==
+	    3'd2)
 Blocking rules: (none)
  
 Rule: cache_sendFillReq
-Predicate: cache_memReqQ.i_notFull && (cache_mshr == 3'd3)
+Predicate: cache_memReqQ.i_notFull &&
+	   (((cache_mshr_readBeforeLaterWrites_0.read &&
+	      cache_mshr_readBeforeLaterWrites_1.read)
+	     ? cache_mshr_register
+	     : (_ :: Bit 3)) ==
+	    3'd3)
 Blocking rules: (none)
  
 Rule: cache_waitFillResp
 Predicate: (cache_cache_data_serverAdapter_cnt .< 3'd3) &&
 	   cache_memRespQ.i_notEmpty &&
-	   (cache_missReq[64] || (! cache_hitQ_rv.port0__read[32])) &&
-	   (cache_mshr == 3'd4)
+	   (cache_missReq[64] || (! cache_hitQ_rv.port0__read[65])) &&
+	   (((cache_mshr_readBeforeLaterWrites_0.read &&
+	      cache_mshr_readBeforeLaterWrites_1.read)
+	     ? cache_mshr_register
+	     : (_ :: Bit 3)) ==
+	    3'd4)
 Blocking rules: (none)
  
 Rule: cache_waitStore
@@ -394,7 +419,11 @@ Predicate: cache_cache_data_serverAdapter_outData_beforeDeq.read &&
 	    cache_cache_data_serverAdapter_outData_enqw.whas) &&
 	   (cache_cache_data_serverAdapter_cnt .< 3'd3) &&
 	   cache_storeQ.i_notEmpty &&
-	   (cache_mshr == 3'd6)
+	   (((cache_mshr_readBeforeLaterWrites_0.read &&
+	      cache_mshr_readBeforeLaterWrites_1.read)
+	     ? cache_mshr_register
+	     : (_ :: Bit 3)) ==
+	    3'd6)
 Blocking rules: (none)
  
 Rule: connectCacheDram
@@ -410,7 +439,12 @@ Predicate: doinit
 Blocking rules: (none)
  
 Rule: reqs
-Predicate: (cache_mshr == 3'd0) &&
+Predicate: ((cache_mshr_readBeforeLaterWrites_1.read
+	     ? cache_mshr_port_0.whas
+	       ? cache_mshr_port_0.wget
+	       : cache_mshr_register
+	     : (_ :: Bit 3)) ==
+	    3'd0) &&
 	   randomMem_initialized &&
 	   (mainRef_bram_serverAdapter_cnt .< 3'd3) &&
 	   ((randomMem_zaz.whas
@@ -949,12 +983,12 @@ Predicate: (cache_mshr == 3'd0) &&
 				       ? randomMem_zaz.wget
 				       : 65'd0)[44:38])) ||
 	       ((cache_cache_data_serverAdapter_cnt .< 3'd3) &&
-		(! cache_loadOffsetQ_rv.port0__read[4])))) &&
+		cache_loadOffsetQ.i_notFull))) &&
 	   (counterIn <= 32'd50000)
-Blocking rules: (none)
+Blocking rules: cache_waitStore, cache_waitFillResp, cache_startMiss_BRAMReq
  
 Rule: resps
-Predicate: cache_hitQ_rv.port1__read[32] && mainRef_dl_d_0_rv.port0__read[32]
+Predicate: cache_hitQ_rv.port1__read[65] && mainRef_dl_d_0_rv.port0__read[32]
 Blocking rules: (none)
  
 Rule: deadlockerC
@@ -965,13 +999,9 @@ Logical execution order: connectCacheDram,
 			 connectDramCache,
 			 deadlockerC,
 			 randomMem_every,
-			 reqs,
 			 randomMem_every_1,
-			 start,
-			 mainRef_bram_serverAdapter_stageReadResponseAlways,
 			 mainRef_bram_serverAdapter_overRun,
 			 mainRef_bram_serverAdapter_moveToOutFIFO,
-			 mainRef_bram_serverAdapter_s1__dreg_update,
 			 cache_startMiss_BRAMReq,
 			 cache_sendFillReq,
 			 cache_waitFillResp,
@@ -982,14 +1012,19 @@ Logical execution order: connectCacheDram,
 			 mainRef_deq,
 			 mainRef_bram_serverAdapter_outData_enqueue,
 			 mainRef_bram_serverAdapter_outData_dequeue,
-			 mainRef_bram_serverAdapter_cnt_finalAdd,
 			 cache_startMiss_BRAMResp,
 			 cache_waitStore,
+			 reqs,
+			 start,
+			 mainRef_bram_serverAdapter_stageReadResponseAlways,
+			 mainRef_bram_serverAdapter_cnt_finalAdd,
+			 mainRef_bram_serverAdapter_s1__dreg_update,
 			 cache_cache_data_serverAdapter_stageReadResponseAlways,
 			 cache_cache_data_serverAdapter_outData_enqueue,
 			 cache_cache_data_serverAdapter_outData_dequeue,
 			 cache_cache_data_serverAdapter_cnt_finalAdd,
 			 cache_cache_data_serverAdapter_s1__dreg_update,
+			 cache_mshr_canonicalize,
 			 cache_lockL1_canonicalize
 
 =========================================
