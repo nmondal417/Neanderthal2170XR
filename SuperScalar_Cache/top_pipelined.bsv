@@ -62,7 +62,7 @@ module mktop_pipelined(Empty);
         let req = ireq;
         if (debug) $display("Get IResp ", fshow(req), fshow(x));
         req.data = x;
-            rv_core.getIResp(req);
+        rv_core.getIResp(req);
     endrule
 
     rule requestD;
@@ -77,7 +77,7 @@ module mktop_pipelined(Empty);
         let req = dreq;
         if (debug) $display("Get IResp ", fshow(req), fshow(x));
         req.data = x;
-            rv_core.getDResp(req);
+        rv_core.getDResp(req);
     endrule
   
     rule requestMMIO;
