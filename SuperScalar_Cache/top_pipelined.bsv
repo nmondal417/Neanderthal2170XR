@@ -18,7 +18,7 @@ module mktop_pipelined(Empty);
     Cache1 d_cache <- mkCache1;
 
     RVIfc rv_core <- mkpipelined;
-    Reg#(Mem) ireq <- mkRegU;
+    Reg#(Mem2) ireq <- mkRegU;
     Reg#(Mem) dreq <- mkRegU;
     FIFO#(Mem) mmioreq <- mkFIFO;
     let debug = False;
@@ -51,7 +51,7 @@ module mktop_pipelined(Empty);
         if (debug) $display("Get IReq", fshow(req));
         ireq <= req;
         //TODO check req struct
-        i_cache.putFromProc(ProcReq{write: req.byte_en[0], addr: req.addr, data: req.data});
+        i_cache.putFromProc(ProcReq2{write: req.byte_en[0], addr: req.addr, data: req.data});
 
     endrule
     

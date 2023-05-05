@@ -12,7 +12,7 @@ typedef enum {Ready, StartMiss_BRAMReq, StartMiss_BRAMResp, SendFillReq, WaitFil
 
 
 interface Cache2;
-    method Action putFromProc(ProcReq req);
+    method Action putFromProc(ProcReq2 req);
     method ActionValue#(OneOrTwoWords) getToProc();
     method ActionValue#(MainMemReq) getToMem();
     method Action putFromMem(MainMemResp resp);
@@ -34,7 +34,7 @@ module mkCache2(Cache2);
   Vector#(128, Reg#(Bool)) validArray <- replicateM(mkReg(False));
   Vector#(128, Reg#(Bool)) dirtyArray <- replicateM(mkReg(False));
 
-  Reg#(ProcReq) missReq <- mkRegU;
+  Reg#(ProcReq2) missReq <- mkRegU;
   Ehr#(2, ReqStatus) mshr <- mkEhr(Ready);
 
   FIFO#(OneOrTwoWords) hitQ <- mkBypassFIFO;
@@ -42,7 +42,7 @@ module mkCache2(Cache2);
   FIFO#(MainMemReq) memReqQ <- mkFIFO;
   FIFO#(MainMemResp) memRespQ <- mkFIFO; 
 
-  FIFO#(ProcReq) storeQ <- mkSizedFIFO(1);
+  FIFO#(ProcReq2) storeQ <- mkSizedFIFO(1);
 
   Reg#(Bit#(32)) hitCount <- mkReg(0);
   Reg#(Bit#(32)) missCount <- mkReg(0);
@@ -127,7 +127,7 @@ module mkCache2(Cache2);
 
     tagArray[req_idx] <= req_tag;
     validArray[req_idx] <= True;
-
+    /*
     if (req_store == 1)  begin  //store instruction
       dirtyArray[req_idx] <= True;
       new_line[req_offset] = req_data;   //update the data at the specific word
@@ -136,8 +136,8 @@ module mkCache2(Cache2);
                          address: req_idx,
                         datain: new_line});
       //hitQ.enq(0);
-    end
-    else begin     //load instruction
+    end */
+    //else begin     //load instruction
 
       //$display("Offset: ", fshow(req_offset));
       //$display("Idx: ", fshow(req_idx));
@@ -164,7 +164,7 @@ module mkCache2(Cache2);
 
       //$display("Return data: ", fshow(return_data));
       hitQ.enq(return_data);
-    end
+    //end
 
     mshr[0] <= Ready;
 
@@ -200,7 +200,7 @@ module mkCache2(Cache2);
     end
 
   endrule */
-
+/*
   rule waitStore if (mshr[0] == WaitStore);
     Vector#(16, Word) line <- cache_data.portA.response.get();
     ProcReq req = storeQ.first();
@@ -220,7 +220,7 @@ module mkCache2(Cache2);
     storeQ.deq();
     //hitQ.enq(0);
     mshr[0] <= Ready;
-  endrule
+  endrule */
 /*
   rule displayPercents;
     if (missCount == 100) begin
@@ -230,10 +230,10 @@ module mkCache2(Cache2);
 */
   //rule clearL1Lock; lockL1[1] <= False; endrule
 
-  method Action putFromProc(ProcReq req) if (mshr[1] == Ready);
+  method Action putFromProc(ProcReq2 req) if (mshr[1] == Ready);
     let req_store = req.write; //1 if store, 0 if load
     Word req_addr = req.addr;
-    Word req_data = req.data;
+    OneOrTwoWords req_data = req.data;
 
     let req_offset = req_addr[5:2];
     let req_idx = req_addr[12:6];
@@ -487,7 +487,7 @@ module mkCache1(Cache1);
     storeQ.deq();
     //hitQ.enq(0);
     mshr[0] <= Ready;
-  endrule
+  endrule  
 /*
   rule displayPercents;
     if (missCount == 100) begin

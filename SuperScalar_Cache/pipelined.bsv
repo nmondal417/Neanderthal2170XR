@@ -9,7 +9,8 @@ import MemTypes::*;
 import Ehr::*;
 import Supfifo::*;
 
-typedef struct { Bit#(4) byte_en; Bit#(32) addr; Bit#(65) data; } Mem deriving (Eq, FShow, Bits);
+typedef struct { Bit#(4) byte_en; Bit#(32) addr; Bit#(65) data; } Mem2 deriving (Eq, FShow, Bits);
+typedef struct { Bit#(4) byte_en; Bit#(32) addr; Bit#(32) data; } Mem deriving (Eq, FShow, Bits);
 
 interface RVIfc;
     method ActionValue#(Mem) getIReq();
@@ -60,8 +61,8 @@ typedef struct {
 (* synthesize *)
 module mkpipelined(RVIfc);
     // Interface with memory and devices
-    FIFO#(Mem) toImem <- mkBypassFIFO;
-    FIFO#(OneOrTwoWords) fromImem <- mkBypassFIFO;
+    FIFO#(Mem2) toImem <- mkBypassFIFO;
+    FIFO#(Mem2) fromImem <- mkBypassFIFO;
     FIFO#(Mem) toDmem <- mkBypassFIFO;
     FIFO#(Mem) fromDmem <- mkBypassFIFO;
     FIFO#(Mem) toMMIO <- mkBypassFIFO;
@@ -124,7 +125,7 @@ module mkpipelined(RVIfc);
 		let iid <- fetch1Konata(lfh, fresh_id, 0);
         if (konata_debug) labelKonataLeft(lfh, iid, $format("PC %x",program_counter[0]));
         if(debug && count < maxCount) $display("Fetch %x", program_counter[0]);
-        toImem.enq(Mem{byte_en: 0,  addr: program_counter[0], data: 0});
+        toImem.enq(Mem2{byte_en: 0,  addr: program_counter[0], data: 0});
         f2d.enq1(F2D{pc: program_counter[0], ppc: program_counter[0] + 4, epoch: mEpoch[0], k_id: iid});
         if  (program_counter[0][5:2] != 15 ) begin 
             f2d.enq2(F2D{pc: program_counter[0] + 4, ppc: program_counter[0] + 8, epoch: mEpoch[0], k_id: iid});
@@ -136,9 +137,9 @@ module mkpipelined(RVIfc);
 
     rule decode if (!starting);
         //First Instruction
-        let imemInst1 = fromImem.first()[64:33];
-        let isTwoWords = fromImem.first()[32];
-        let imemInst2 = fromImem.first()[31:0];
+        let imemInst1 = fromImem.first().data[64:33];
+        let isTwoWords = fromImem.first().data[32];
+        let imemInst2 = fromImem.first().data[31:0];
 
         // F2D Data 1
         let f2d_data_1 = f2d.first1();
@@ -360,6 +361,7 @@ module mkpipelined(RVIfc);
         // if (notMemory(ins1) and notMemory(ins2))
         if(!isMemoryInst(ins1.dinst) && !isMemoryInst(ins2.dinst) ) begin 
             if (ins2.dinst.valid_rd) begin
+                let fields = getInstFields(ins2.dinst.inst);
                 let rd_idx = fields.rd;
                 if (rd_idx != 0) begin 
                     rf[rd_idx][0] <= ins2.data;
@@ -368,7 +370,7 @@ module mkpipelined(RVIfc);
             end	    
             e2w.deq2();
         end else if (isMemoryInst(ins1.dinst) && (ins1.mem_business.mmio || ins1.dinst.valid_rd )) begin // (* // write_val *)
-            
+            let mem_business = ins1.mem_business;
             let resp_1 = ?;
 		    if (ins1.mem_business.mmio) begin 
                 resp_1 = fromMMIO.first();
@@ -392,6 +394,7 @@ module mkpipelined(RVIfc);
         
 		end 
         if (ins1.dinst.valid_rd) begin
+            let fields = getInstFields(ins1.dinst.inst);
             let rd_idx = fields.rd;
             if (rd_idx != 0) begin 
                 rf[rd_idx][0] <= ins1.data;
@@ -424,11 +427,11 @@ module mkpipelined(RVIfc);
 		    squashKonata(lfh, f);
 	endrule
 		
-    method ActionValue#(Mem) getIReq();
+    method ActionValue#(Mem2) getIReq();
 		toImem.deq();
 		return toImem.first();
     endmethod
-    method Action getIResp(Mem a);
+    method Action getIResp(Mem2 a);
     	fromImem.enq(a);
     endmethod
     method ActionValue#(Mem) getDReq();
