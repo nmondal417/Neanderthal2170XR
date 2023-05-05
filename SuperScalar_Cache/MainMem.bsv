@@ -29,7 +29,7 @@ interface MainMemFPGA;
     method ActionValue#(MainMemResp) get2();
 endinterface
 
-typedef struct {Bool icache, MainMemReq req} MainMemFPGAReq deriving (Eq, FShow, Bits);
+//typedef struct {Bool icache, MainMemReq req} MainMemFPGAReq deriving (Eq, FShow, Bits);
 
 module mkMainMemFast(MainMemFast);
     BRAM_Configure cfg = defaultValue();
@@ -123,7 +123,7 @@ module mkMainMem2(MainMem2);
         return r;
     endmethod
 endmodule
-
+/*
 module mkMainMemFPGA(MainMemFPGA);
     BRAM_Configure cfg = defaultValue();
     cfg.loadFormat = tagged Hex "mem.vmh";
@@ -164,4 +164,4 @@ module mkMainMemFPGA(MainMemFPGA);
     endmethod
 
     
-endmodule 
+endmodule */

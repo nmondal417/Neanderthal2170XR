@@ -5,6 +5,7 @@ import RVUtil::*;
 import Vector::*;
 import KonataHelper::*;
 import Printf::*;
+import MemTypes::*;
 import Ehr::*;
 import Supfifo::*;
 
@@ -56,40 +57,6 @@ typedef struct {
     KonataId k_id; // <- This is a unique identifier per instructions, for logging purposes
 } E2W deriving (Eq, FShow, Bits);
 
-interface Scoreboard;
-    method Action insert(Bit#(5) rd_idx);
-    method Action remove1(Bit#(5) rd_idx);
-    method Action remove2(Bit#(5) rd_idx);
-    method Bool search1(Bit#(5) rs1_idx);
-    method Bool search2(Bit#(5) rs2_idx);
-    method Bool search3(Bit#(5) rd_idx);
-endinterface
-
-(* synthesize *)
-module mkScoreboard(Scoreboard);
-    Vector#(32, Ehr#(3, Bool)) sb <- replicateM(mkEhr(False)); 
-    
-    method Action insert(Bit#(5) rd_idx);
-        sb[rd_idx][0] <= True;
-    endmethod
-    method Action remove1(Bit#(5) rd_idx);
-        sb[rd_idx][1] <= False;
-    endmethod
-    method Action remove2(Bit#(5) rd_idx);
-        sb[rd_idx][2] <= False;
-    endmethod
-    method Bool search1(Bit#(5) rsrc_idx1);
-        return sb[rsrc_idx1][0];
-    endmethod
-    method Bool search2(Bit#(5) rsrc_idx2);
-        return sb[rsrc_idx2][0];
-    endmethod 
-    method Bool search3(Bit#(5) rd_idx);
-        return sb[rd_idx][0];
-    endmethod 
-
-    
-endmodule
 (* synthesize *)
 module mkpipelined(RVIfc);
     // Interface with memory and devices
@@ -107,7 +74,7 @@ module mkpipelined(RVIfc);
     Ehr#(2, Bit#(32)) program_counter <- mkEhr(32'h0000000);
     
     //Register File
-    Vector#(32, Reg#(Bit#(32))) rf <- replicateM(mkReg(0));
+    Vector#(32, Ehr#(2, Bit#(32))) rf <- replicateM(mkEhr(0));
 
     //Queues for Pipeling 
     SupFifo#(F2D) f2d <- mkSupFifo;
@@ -115,7 +82,7 @@ module mkpipelined(RVIfc);
     SupFifo#(E2W) e2w <- mkSupFifo;
 
     //Epoch
-    Reg#(Bit#(1)) mEpoch <- mkReg(0);
+    Ehr#(2, Bit#(1)) mEpoch <- mkEhr(0);
 
     //Scoreboard
     Vector#(32, Ehr#(3, Bool)) sb <- replicateM(mkEhr(False));
@@ -158,9 +125,9 @@ module mkpipelined(RVIfc);
         if (konata_debug) labelKonataLeft(lfh, iid, $format("PC %x",program_counter[0]));
         if(debug && count < maxCount) $display("Fetch %x", program_counter[0]);
         toImem.enq(Mem{byte_en: 0,  addr: program_counter[0], data: 0});
-        f2d.enq1(F2D{pc: program_counter[0], ppc: program_counter[0] + 4, epoch: mEpoch, k_id: iid});
-        if  (program_counter[5:2] != 15 ) begin 
-            f2d.enq2(F2D{pc: program_counter[0] + 4, ppc: program_counter[0] + 8, epoch: mEpoch, k_id: iid});
+        f2d.enq1(F2D{pc: program_counter[0], ppc: program_counter[0] + 4, epoch: mEpoch[0], k_id: iid});
+        if  (program_counter[0][5:2] != 15 ) begin 
+            f2d.enq2(F2D{pc: program_counter[0] + 4, ppc: program_counter[0] + 8, epoch: mEpoch[0], k_id: iid});
             program_counter[0] <= program_counter[0] + 8;
         end else begin 
             program_counter[0] <= program_counter[0] + 4;
@@ -184,8 +151,8 @@ module mkpipelined(RVIfc);
         let rs1_idx_1 = getInstFields(imemInst1).rs1;
         let rs2_idx_1 = getInstFields(imemInst1).rs2;
         let rd_1 = getInstFields(imemInst1).rd;
-        let rs1_1 = (rs1_idx_1 == 0 ? 0 : rf[rs1_idx_1]);
-        let rs2_1 = (rs2_idx_1 == 0 ? 0 : rf[rs2_idx_1]);
+        let rs1_1 = (rs1_idx_1 == 0 ? 0 : rf[rs1_idx_1][1]);
+        let rs2_1 = (rs2_idx_1 == 0 ? 0 : rf[rs2_idx_1][1]);
         let dInst_1 = decodeInst(imemInst1);
 
         //F2D Data 2
@@ -199,19 +166,21 @@ module mkpipelined(RVIfc);
         let rs1_idx_2 = getInstFields(imemInst2).rs1;
         let rs2_idx_2 = getInstFields(imemInst2).rs2;
         let rd_2 = getInstFields(imemInst2).rd;
-        let rs1_2 = (rs1_idx_2 == 0 ? 0 : rf[rs1_idx_2]);
-        let rs2_2 = (rs2_idx_2 == 0 ? 0 : rf[rs2_idx_2]);
+        let rs1_2 = (rs1_idx_2 == 0 ? 0 : rf[rs1_idx_2][1]);
+        let rs2_2 = (rs2_idx_2 == 0 ? 0 : rf[rs2_idx_2][1]);
         let dInst_2 = decodeInst(imemInst2);
         
-        //if(noDependency(sb,ins1) && noDependency(sb, ins2))
-        if(!(sb[rs1_1][0] || sb[rs2_1][0] || sb[rd_1][0]) && !(sb[rs1_2][0] || sb[rs2_2][0] || sb[rd_2][0])) begin 
+        //if(noDependency(sb,ins1) && noDependency(sb, ins2) and noDependency(ins1, ins2))
+        if(!(sb[rs1_idx_1][2] || sb[rs2_idx_1][2] || sb[rd_1][2]) 
+            && !(sb[rs1_idx_2][2] || sb[rs2_idx_2][2] || sb[rd_2][2]) 
+            && !(rs1_idx_2 == rd_1 || rs2_idx_2 == rd_1 ) ) begin 
             
             //Debug 1
             if (debug && count < maxCount) $display(pc_1, " [Decode] ", fshow(dInst_1));
             if (konata_debug) decodeKonata(lfh, current_id_1);
             if (konata_debug) labelKonataLeft(lfh,current_id_1, $format("Instr bits: %x",dInst_1.inst));
             if (konata_debug) labelKonataLeft(lfh, current_id_1, $format(" Potential r1: %x, Potential r2: %x" , rs1_1, rs2_1)); 
-            if(fEpoch_1 == mEpoch) begin
+            if(fEpoch_1 == mEpoch[1]) begin
                 if(dInst_1.valid_rd && rd_1 != 0) begin
                     sb[rd_1][0] <= True;
                 end 
@@ -223,7 +192,7 @@ module mkpipelined(RVIfc);
             if (konata_debug) decodeKonata(lfh, current_id_2);
             if (konata_debug) labelKonataLeft(lfh,current_id_2, $format("Instr bits: %x",dInst_2.inst));
             if (konata_debug) labelKonataLeft(lfh, current_id_2, $format(" Potential r1: %x, Potential r2: %x" , rs1_2, rs2_2)); 
-            if (fEpoch_2 == mEpoch) begin 
+            if (fEpoch_2 == mEpoch[1]) begin 
                 if(dInst_2.valid_rd && rd_2 != 0) begin
                     sb[rd_2][0] <= True;
                 end 
@@ -233,14 +202,14 @@ module mkpipelined(RVIfc);
             f2d.deq2();
             fromImem.deq();
         //if(noDependency(ins1, sb))
-        end else if (!(sb[rs1_1][0] || sb[rs2_1][0] || sb[rd_1][0])) begin 
+        end else if (!(sb[rs1_idx_1][2] || sb[rs2_idx_1][2] || sb[rd_1][2])) begin 
             //Debug 1
             if (debug && count < maxCount) $display(pc_1, " [Decode] ", fshow(dInst_1));
             if (konata_debug) decodeKonata(lfh, current_id_1);
             if (konata_debug) labelKonataLeft(lfh,current_id_1, $format("Instr bits: %x",dInst_1.inst));
             if (konata_debug) labelKonataLeft(lfh, current_id_1, $format(" Potential r1: %x, Potential r2: %x" , rs1_1, rs2_1));
 
-            if(fEpoch_1 == mEpoch) begin
+            if(fEpoch_1 == mEpoch[1]) begin
                 if(dInst_1.valid_rd && rd_1 != 0) begin
                     sb[rd_1][0] <= True;
                 end 
@@ -262,13 +231,13 @@ module mkpipelined(RVIfc);
         if (debug && count < maxCount) $display(ins2.pc, " [Execute] ", fshow(ins2.dinst));
 		if (konata_debug) executeKonata(lfh, ins2.k_id);
 
-        if(ins1.epoch != mEpoch && ins2.epoch != mEpoch ) begin 
+        if(ins1.epoch != mEpoch[0] && ins2.epoch != mEpoch[0] ) begin 
             d2e.deq2();
             sb[ins1.rd_idx][1] <= False;
             sb[ins2.rd_idx][1] <= False;
-        end else if (ins1.epoch != mEpoch) begin 
+        end else if (ins1.epoch != mEpoch[0]) begin 
             sb[ins1.rd_idx][1] <= False;
-        end else if (isALU(ins1.dinst) && isALU(ins2.dinst) && ins2.epoch == mEpoch) begin 
+        end else if (isALU(ins1.dinst) && isALU(ins2.dinst) && ins2.epoch == mEpoch[0]) begin 
             //Execute Both
             d2e.deq2();
 
@@ -286,16 +255,7 @@ module mkpipelined(RVIfc);
             if (debug && count < maxCount) $display(ins1.pc, "Register Source 2: %d", ins1.rv2);
             if (debug && count < maxCount) $display(ins1.pc, "Immediate: %d", imm_1);
             if (konata_debug) labelKonataLeft(lfh, ins1.k_id, $format(" ALU output: %x" , data_1));
-            // not sure if this required
-            let controlResult_1 = execControl32(ins1.dinst.inst, ins1.rv1, ins1.rv2, imm_1, ins1.pc);
-            let nextPc_1 = controlResult_1.nextPC;
-
-            if(ins1.ppc != nextPc_1) begin
-                if(debug && count < maxCount) $display("New PC: ", fshow(nextPc_1));
-                mEpoch <= mEpoch + 1;
-                program_counter[1] <= nextPc_1;
-            end 
-
+        
             e2w.enq1(E2W{mem_business: MemBusiness { isUnsigned : unpack(isUnsigned_1), size : size_1, offset : offset_1, mmio: mmio_1}, data: data_1, dinst: ins1.dinst, k_id: ins1.k_id});
 
             // Instruction 2 
@@ -313,15 +273,6 @@ module mkpipelined(RVIfc);
             if (debug && count < maxCount) $display(ins1.pc, "Immediate: %d", imm_2);
             if (konata_debug) labelKonataLeft(lfh, ins2.k_id, $format(" ALU output: %x" , data_2));
             
-            // not sure if this required
-            let controlResult_2 = execControl32(ins2.dinst.inst, ins2.rv1, ins2.rv2, imm_2, ins2.pc);
-            let nextPc_2 = controlResult_2.nextPC;
-            
-            if(ins2.ppc != nextPc_2) begin
-                if(debug && count < maxCount) $display("New PC: ", fshow(nextPc_2));
-                mEpoch <= mEpoch + 1;
-                program_counter[1] <= nextPc_2;
-            end 
 
             e2w.enq2(E2W{mem_business: MemBusiness { isUnsigned : unpack(isUnsigned_2), size : size_2, offset : offset_2, mmio: mmio_2}, data: data_2, dinst: ins2.dinst, k_id: ins2.k_id});
         end else begin 
@@ -344,14 +295,14 @@ module mkpipelined(RVIfc);
                 let shift_amount_1 = {offset_1, 3'b0};
                 let byte_en_1 = 0;
                 case (size_1) matches
-                2'b00: byte_en_1 = 4'b0001 << offset;
-                2'b01: byte_en_1 = 4'b0011 << offset;
-                2'b10: byte_en_1 = 4'b1111 << offset;
+                2'b00: byte_en_1 = 4'b0001 << offset_1;
+                2'b01: byte_en_1 = 4'b0011 << offset_1;
+                2'b10: byte_en_1 = 4'b1111 << offset_1;
                 endcase
 
-                data_1 = rv2 << shift_amount;
-                addr_1 = {addr[31:2], 2'b0};
-                isUnsigned_1 = funct3[2];
+                data_1 = ins1.rv2 << shift_amount_1;
+                addr_1 = {addr_1[31:2], 2'b0};
+                isUnsigned_1 = funct3_1[2];
 
                 let type_mem_1 = (ins1.dinst.inst[5] == 1) ? 1 : 0;
                 let req_1 = Mem {byte_en : type_mem_1,
@@ -382,7 +333,7 @@ module mkpipelined(RVIfc);
             let nextPc_1 = controlResult_1.nextPC;
             if(ins1.ppc != nextPc_1) begin
                 if(debug && count < maxCount) $display("New PC: ", fshow(nextPc_1));
-                mEpoch <= mEpoch + 1;
+                mEpoch[0] <= mEpoch[0] + 1;
                 program_counter[1] <= nextPc_1;
             end 
             
@@ -393,51 +344,60 @@ module mkpipelined(RVIfc);
 
     rule writeback if (!starting);
         // TODO
-        let e2w_data = e2w.first();
-        e2w.deq();
-        let mem_business = e2w_data.mem_business;
-        let data = e2w_data.data; 
-        let dInst = e2w_data.dinst;
-        let current_id = e2w_data.k_id;
-       
-        if (konata_debug) writebackKonata(lfh,current_id);
-        if (konata_debug) retired.enq(current_id);
-        let fields = getInstFields(dInst.inst);
-        if (isMemoryInst(dInst) && (mem_business.mmio || dInst.valid_rd)) begin // (* // write_val *)
+        let ins1 = e2w.first1();
+        let ins2 = e2w.first2();
+        e2w.deq1();
+
+        if (konata_debug) writebackKonata(lfh,ins1.k_id);
+        if (konata_debug) retired.enq(ins1.k_id);
+
+        if(debug && count < maxCount) $display("[Writeback]", fshow(ins1.dinst));
+        if (!ins1.dinst.legal) begin
+			if(debug && count < maxCount) $display("[Writeback] Illegal Inst, Drop and fault: ", fshow(ins1.dinst));
+			//program_counter <= 0;	// Fault
+	    end
+
+        // if (notMemory(ins1) and notMemory(ins2))
+        if(!isMemoryInst(ins1.dinst) && !isMemoryInst(ins2.dinst) ) begin 
+            if (ins2.dinst.valid_rd) begin
+                let rd_idx = fields.rd;
+                if (rd_idx != 0) begin 
+                    rf[rd_idx][0] <= ins2.data;
+                    sb[rd_idx][0] <= False;
+                end 
+            end	    
+            e2w.deq2();
+        end else if (isMemoryInst(ins1.dinst) && (ins1.mem_business.mmio || ins1.dinst.valid_rd )) begin // (* // write_val *)
             
-            let resp = ?;
-		    if (mem_business.mmio) begin 
-                resp = fromMMIO.first();
+            let resp_1 = ?;
+		    if (ins1.mem_business.mmio) begin 
+                resp_1 = fromMMIO.first();
 		        fromMMIO.deq();
 		    end else begin 
-                resp = fromDmem.first();
+                resp_1 = fromDmem.first();
 		        fromDmem.deq();
 		    end
 
-            if(debug && count < maxCount) $display("Mem Inst: ", fshow(resp));
+            if(debug && count < maxCount) $display("Mem Inst: ", fshow(resp_1));
 
-            let mem_data = resp.data;
-            mem_data = mem_data >> {mem_business.offset ,3'b0};
-            case ({pack(mem_business.isUnsigned), mem_business.size}) matches
-	     	3'b000 : data = signExtend(mem_data[7:0]);
-	     	3'b001 : data = signExtend(mem_data[15:0]);
-	     	3'b100 : data = zeroExtend(mem_data[7:0]);
-	     	3'b101 : data = zeroExtend(mem_data[15:0]);
-	     	3'b010 : data = mem_data;
-             endcase
-		end
-		if(debug && count < maxCount) $display("[Writeback]", fshow(dInst));
-        if (!dInst.legal) begin
-			if(debug && count < maxCount) $display("[Writeback] Illegal Inst, Drop and fault: ", fshow(dInst));
-			//program_counter <= 0;	// Fault
-	    end
-		if (dInst.valid_rd) begin
+            let mem_data_1 = resp_1.data;
+            mem_data_1 = mem_data_1 >> {mem_business.offset ,3'b0};
+            case ({pack(ins1.mem_business.isUnsigned), ins1.mem_business.size}) matches
+                3'b000 : ins1.data = signExtend(mem_data_1[7:0]);
+                3'b001 : ins1.data = signExtend(mem_data_1[15:0]);
+                3'b100 : ins1.data = zeroExtend(mem_data_1[7:0]);
+                3'b101 : ins1.data = zeroExtend(mem_data_1[15:0]);
+                3'b010 : ins1.data = mem_data_1;
+            endcase
+        
+		end 
+        if (ins1.dinst.valid_rd) begin
             let rd_idx = fields.rd;
             if (rd_idx != 0) begin 
-                rf[rd_idx] <=data;
-                scoreboard.remove2(rd_idx);
+                rf[rd_idx][0] <= ins1.data;
+                sb[rd_idx][0] <= False;
             end
-		end
+        end
         
 
         // Similarly, to register an execute event for an instruction:

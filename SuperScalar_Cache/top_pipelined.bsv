@@ -8,16 +8,14 @@ import MemTypes::*;
 import DelayLine::*;
 typedef Bit#(32) Word;
 
-#define funccdec()
-
 
 module mktop_pipelined(Empty);
     // Instantiate the dual ported memory
     MainMem2 dram <- mkMainMem2;
     //I-Cache
-    Cache i_cache <- mkCache;
+    Cache2 i_cache <- mkCache2;
     //D-Cache
-    Cache d_cache <- mkCache;
+    Cache1 d_cache <- mkCache1;
 
     RVIfc rv_core <- mkpipelined;
     Reg#(Mem) ireq <- mkRegU;

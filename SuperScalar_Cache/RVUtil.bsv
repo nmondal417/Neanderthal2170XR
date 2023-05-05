@@ -445,15 +445,15 @@ function ControlResult execControl32(Bit#(32) inst, Bit#(32) rs1_val, Bit#(32) r
     return ControlResult{ taken: taken, nextPC: nextPC };
 endfunction
 
-function Bool isBRANCH(DecodedInst dInst);
-    return isControlInst(dInst) && (dInst.inst[2] == 1'b0);
-endfunction
-function Bool isJALR(DecodedInst dInst);
-    return isControlInst(dInst) && (dInst.inst[3:2] == 2'b01);
-endfunction
-function Bool isJAL(DecodedInst dInst);
-    return isControlInst(dInst) 
-endfunction
+// function Bool isBRANCH(DecodedInst dInst);
+//     return isControlInst(dInst) && (dInst.inst[2] == 1'b0);
+// endfunction
+// function Bool isJALR(DecodedInst dInst);
+//     return isControlInst(dInst) && (dInst.inst[3:2] == 2'b01);
+// endfunction
+// function Bool isJAL(DecodedInst dInst);
+//     return isControlInst(dInst) 
+// endfunction
 
 // Instruction Classes
 function Bool isMemoryInst(DecodedInst dInst);
@@ -463,6 +463,6 @@ function Bool isControlInst(DecodedInst dInst);
     return (dInst.inst[6:4] == 3'b110); // This also covers a reserved opcode
 endfunction
 function Bool isALU(DecodedInst dInst);
-    return !(dInst.inst[6:4] == 3'b110); // got this from exec
+    return !isMemoryInst(dInst) && !isControlInst(dInst); // got this from exec
 endfunction
 
