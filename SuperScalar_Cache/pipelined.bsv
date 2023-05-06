@@ -13,8 +13,8 @@ typedef struct { Bit#(4) byte_en; Bit#(32) addr; Bit#(65) data; } Mem2 deriving 
 typedef struct { Bit#(4) byte_en; Bit#(32) addr; Bit#(32) data; } Mem deriving (Eq, FShow, Bits);
 
 interface RVIfc;
-    method ActionValue#(Mem) getIReq();
-    method Action getIResp(Mem a);
+    method ActionValue#(Mem2) getIReq();
+    method Action getIResp(Mem2 a);
     method ActionValue#(Mem) getDReq();
     method Action getDResp(Mem a);
     method ActionValue#(Mem) getMMIOReq();
@@ -67,7 +67,7 @@ module mkpipelined(RVIfc);
     FIFO#(Mem) fromDmem <- mkBypassFIFO;
     FIFO#(Mem) toMMIO <- mkBypassFIFO;
     FIFO#(Mem) fromMMIO <- mkBypassFIFO;
-    let debug = False;
+    let debug = True;
     let mmio_debug = False;
     let konata_debug = False;
 
@@ -86,7 +86,7 @@ module mkpipelined(RVIfc);
     Ehr#(2, Bit#(1)) mEpoch <- mkEhr(0);
 
     //Scoreboard
-    Vector#(32, Ehr#(3, Bool)) sb <- replicateM(mkEhr(False));
+    Vector#(32, Ehr#(6, Bool)) sb <- replicateM(mkEhr(False));
 
 	// Code to support Konata visualization
     String dumpFile = "output.log" ;
@@ -98,7 +98,7 @@ module mkpipelined(RVIfc);
 
     //Tics
     Reg#(Bool) starting <- mkReg(True);
-    Bit#(32) maxCount = 600;
+    Bit#(32) maxCount = 300;
     Reg#(Bit#(32)) count <- mkReg(0);
     rule doTic;
         if (debug && count < maxCount) begin
@@ -128,6 +128,7 @@ module mkpipelined(RVIfc);
         toImem.enq(Mem2{byte_en: 0,  addr: program_counter[0], data: 0});
         f2d.enq1(F2D{pc: program_counter[0], ppc: program_counter[0] + 4, epoch: mEpoch[0], k_id: iid});
         if  (program_counter[0][5:2] != 15 ) begin 
+            if(debug && count < maxCount) $display("Fetch %x", program_counter[0]+4);
             f2d.enq2(F2D{pc: program_counter[0] + 4, ppc: program_counter[0] + 8, epoch: mEpoch[0], k_id: iid});
             program_counter[0] <= program_counter[0] + 8;
         end else begin 
@@ -170,20 +171,21 @@ module mkpipelined(RVIfc);
         let rs1_2 = (rs1_idx_2 == 0 ? 0 : rf[rs1_idx_2][1]);
         let rs2_2 = (rs2_idx_2 == 0 ? 0 : rf[rs2_idx_2][1]);
         let dInst_2 = decodeInst(imemInst2);
+
+        if (debug && count < maxCount) $display(pc_1, " [Decode] ", fshow(dInst_1));
         
         //if(noDependency(sb,ins1) && noDependency(sb, ins2) and noDependency(ins1, ins2))
-        if(!(sb[rs1_idx_1][2] || sb[rs2_idx_1][2] || sb[rd_1][2]) 
-            && !(sb[rs1_idx_2][2] || sb[rs2_idx_2][2] || sb[rd_2][2]) 
+        if(!(sb[rs1_idx_1][4] || sb[rs2_idx_1][4] || sb[rd_1][4]) 
+            && !(sb[rs1_idx_2][4] || sb[rs2_idx_2][4] || sb[rd_2][4]) 
             && !(rs1_idx_2 == rd_1 || rs2_idx_2 == rd_1 ) ) begin 
             
             //Debug 1
-            if (debug && count < maxCount) $display(pc_1, " [Decode] ", fshow(dInst_1));
             if (konata_debug) decodeKonata(lfh, current_id_1);
             if (konata_debug) labelKonataLeft(lfh,current_id_1, $format("Instr bits: %x",dInst_1.inst));
             if (konata_debug) labelKonataLeft(lfh, current_id_1, $format(" Potential r1: %x, Potential r2: %x" , rs1_1, rs2_1)); 
             if(fEpoch_1 == mEpoch[1]) begin
                 if(dInst_1.valid_rd && rd_1 != 0) begin
-                    sb[rd_1][0] <= True;
+                    sb[rd_1][4] <= True;
                 end 
                 d2e.enq1(D2E{dinst: dInst_1, pc: pc_1, ppc: ppc_1, epoch: fEpoch_1, rv1: rs1_1, rv2: rs2_1, rd_idx: rd_1, k_id: current_id_1});
             end 
@@ -195,7 +197,7 @@ module mkpipelined(RVIfc);
             if (konata_debug) labelKonataLeft(lfh, current_id_2, $format(" Potential r1: %x, Potential r2: %x" , rs1_2, rs2_2)); 
             if (fEpoch_2 == mEpoch[1]) begin 
                 if(dInst_2.valid_rd && rd_2 != 0) begin
-                    sb[rd_2][0] <= True;
+                    sb[rd_2][5] <= True;
                 end 
                 d2e.enq2(D2E{dinst: dInst_2, pc: pc_2, ppc: ppc_2, epoch: fEpoch_2, rv1: rs1_2, rv2: rs2_2, rd_idx: rd_2, k_id: current_id_2});
             end 
@@ -203,7 +205,7 @@ module mkpipelined(RVIfc);
             f2d.deq2();
             fromImem.deq();
         //if(noDependency(ins1, sb))
-        end else if (!(sb[rs1_idx_1][2] || sb[rs2_idx_1][2] || sb[rd_1][2])) begin 
+        end else if (!(sb[rs1_idx_1][4] || sb[rs2_idx_1][4] || sb[rd_1][4])) begin 
             //Debug 1
             if (debug && count < maxCount) $display(pc_1, " [Decode] ", fshow(dInst_1));
             if (konata_debug) decodeKonata(lfh, current_id_1);
@@ -212,7 +214,7 @@ module mkpipelined(RVIfc);
 
             if(fEpoch_1 == mEpoch[1]) begin
                 if(dInst_1.valid_rd && rd_1 != 0) begin
-                    sb[rd_1][0] <= True;
+                    sb[rd_1][4] <= True;
                 end 
                 d2e.enq1(D2E{dinst: dInst_1, pc: pc_1, ppc: ppc_1, epoch: fEpoch_1, rv1: rs1_1, rv2: rs2_1, rd_idx: rd_1, k_id: current_id_1});
             end 
@@ -229,18 +231,22 @@ module mkpipelined(RVIfc);
         //Debug 
         if (debug && count < maxCount) $display(ins1.pc, " [Execute] ", fshow(ins1.dinst));
 		if (konata_debug) executeKonata(lfh, ins1.k_id);
-        if (debug && count < maxCount) $display(ins2.pc, " [Execute] ", fshow(ins2.dinst));
-		if (konata_debug) executeKonata(lfh, ins2.k_id);
+        
 
-        if(ins1.epoch != mEpoch[0] && ins2.epoch != mEpoch[0] ) begin 
-            d2e.deq2();
-            sb[ins1.rd_idx][1] <= False;
-            sb[ins2.rd_idx][1] <= False;
-        end else if (ins1.epoch != mEpoch[0]) begin 
-            sb[ins1.rd_idx][1] <= False;
-        end else if (isALU(ins1.dinst) && isALU(ins2.dinst) && ins2.epoch == mEpoch[0]) begin 
+        if(ins1.epoch != mEpoch[0]) begin 
+            
+            sb[ins1.rd_idx][2] <= False;
+            if (ins2.epoch != mEpoch[0]) begin
+                d2e.deq2();
+                sb[ins2.rd_idx][3] <= False;
+            end
+        end 
+        else if (isALU(ins1.dinst) && isALU(ins2.dinst) && ins2.epoch == mEpoch[0]) begin 
             //Execute Both
             d2e.deq2();
+
+            if (debug && count < maxCount) $display(ins2.pc, " [Execute] ", fshow(ins2.dinst));
+		    if (konata_debug) executeKonata(lfh, ins2.k_id);
 
             // Instruction 1 
             let imm_1 = getImmediate(ins1.dinst);
@@ -269,9 +275,9 @@ module mkpipelined(RVIfc);
             let addr_2 = ins2.rv1 + imm_1;
             Bit#(2) offset_2 = addr_2[1:0];
             
-            if (debug && count < maxCount) $display(ins1.pc, "Register Source 1: %d", ins2.rv1);
-            if (debug && count < maxCount) $display(ins1.pc, "Register Source 2: %d", ins2.rv2);
-            if (debug && count < maxCount) $display(ins1.pc, "Immediate: %d", imm_2);
+            if (debug && count < maxCount) $display(ins2.pc, "Register Source 1: %d", ins2.rv1);
+            if (debug && count < maxCount) $display(ins2.pc, "Register Source 2: %d", ins2.rv2);
+            if (debug && count < maxCount) $display(ins2.pc, "Immediate: %d", imm_2);
             if (konata_debug) labelKonataLeft(lfh, ins2.k_id, $format(" ALU output: %x" , data_2));
             
 
@@ -286,10 +292,6 @@ module mkpipelined(RVIfc);
             let size_1 = funct3_1[1:0];
             let addr_1 = ins1.rv1 + imm_1;
             Bit#(2) offset_1 = addr_1[1:0];
-
-            if (debug && count < maxCount) $display(ins1.pc, "Register Source 1: %d", ins1.rv1);
-            if (debug && count < maxCount) $display(ins1.pc, "Register Source 2: %d", ins1.rv2);
-            if (debug && count < maxCount) $display(ins1.pc, "Immediate: %d", imm_1);
 
             if (isMemoryInst(ins1.dinst)) begin
                 // Technical details for load byte/halfword/word
@@ -333,6 +335,7 @@ module mkpipelined(RVIfc);
             let controlResult_1 = execControl32(ins1.dinst.inst, ins1.rv1, ins1.rv2, imm_1, ins1.pc);
             let nextPc_1 = controlResult_1.nextPC;
             if(ins1.ppc != nextPc_1) begin
+                if (debug && count < maxCount) $display("wrong path detected");
                 if(debug && count < maxCount) $display("New PC: ", fshow(nextPc_1));
                 mEpoch[0] <= mEpoch[0] + 1;
                 program_counter[1] <= nextPc_1;
@@ -360,6 +363,8 @@ module mkpipelined(RVIfc);
 
         // if (notMemory(ins1) and notMemory(ins2))
         if(!isMemoryInst(ins1.dinst) && !isMemoryInst(ins2.dinst) ) begin 
+            if(debug && count < maxCount) $display("[Writeback]", fshow(ins2.dinst));
+
             if (ins2.dinst.valid_rd) begin
                 let fields = getInstFields(ins2.dinst.inst);
                 let rd_idx = fields.rd;
@@ -369,6 +374,7 @@ module mkpipelined(RVIfc);
                 end 
             end	    
             e2w.deq2();
+        //else just do inst 1
         end else if (isMemoryInst(ins1.dinst) && (ins1.mem_business.mmio || ins1.dinst.valid_rd )) begin // (* // write_val *)
             let mem_business = ins1.mem_business;
             let resp_1 = ?;
@@ -397,8 +403,8 @@ module mkpipelined(RVIfc);
             let fields = getInstFields(ins1.dinst.inst);
             let rd_idx = fields.rd;
             if (rd_idx != 0) begin 
-                rf[rd_idx][0] <= ins1.data;
-                sb[rd_idx][0] <= False;
+                rf[rd_idx][1] <= ins1.data;
+                sb[rd_idx][1] <= False;
             end
         end
         

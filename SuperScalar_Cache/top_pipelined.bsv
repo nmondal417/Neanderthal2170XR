@@ -3,6 +3,7 @@ import BRAM::*;
 import pipelined::*;
 import FIFO::*;
 import Cache::*;
+import TwoWordCache::*;
 import MainMem::*;
 import MemTypes::*;
 import DelayLine::*;
