@@ -49,8 +49,9 @@ module mkCache2(Cache2);
       second_word = line[req_offset+1];
       second_word_exists = 1;
     end
-    //$display("Return data: ", fshow(data));
+    
     OneOrTwoWords data = {first_word, second_word_exists, second_word};
+    //$display("Return data: ", fshow(data));
     hitQ.enq(data);
     mshr[0] <= Ready;
   endrule

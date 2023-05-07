@@ -62,20 +62,20 @@ typedef struct {
 module mkpipelined(RVIfc);
     // Interface with memory and devices
     FIFO#(Mem2) toImem <- mkBypassFIFO;
-    FIFO#(Mem2) fromImem <- mkBypassFIFO;
+    SupFifo#(Mem) fromImem <- mkSupFifo;
     FIFO#(Mem) toDmem <- mkBypassFIFO;
     FIFO#(Mem) fromDmem <- mkBypassFIFO;
     FIFO#(Mem) toMMIO <- mkBypassFIFO;
     FIFO#(Mem) fromMMIO <- mkBypassFIFO;
     let debug = True;
-    let mmio_debug = False;
+    let mmio_debug = True;
     let konata_debug = False;
 
     //Program Counter
     Ehr#(2, Bit#(32)) program_counter <- mkEhr(32'h0000000);
     
     //Register File
-    Vector#(32, Ehr#(2, Bit#(32))) rf <- replicateM(mkEhr(0));
+    Vector#(32, Ehr#(3, Bit#(32))) rf <- replicateM(mkEhr(0));
 
     //Queues for Pipeling 
     SupFifo#(F2D) f2d <- mkSupFifo;
@@ -98,7 +98,7 @@ module mkpipelined(RVIfc);
 
     //Tics
     Reg#(Bool) starting <- mkReg(True);
-    Bit#(32) maxCount = 300;
+    Bit#(32) maxCount = 500;
     Reg#(Bit#(32)) count <- mkReg(0);
     rule doTic;
         if (debug && count < maxCount) begin
@@ -138,9 +138,8 @@ module mkpipelined(RVIfc);
 
     rule decode if (!starting);
         //First Instruction
-        let imemInst1 = fromImem.first().data[64:33];
-        let isTwoWords = fromImem.first().data[32];
-        let imemInst2 = fromImem.first().data[31:0];
+        let imemInst1 = fromImem.first1().data;
+        let imemInst2 = fromImem.first2().data;
 
         // F2D Data 1
         let f2d_data_1 = f2d.first1();
@@ -153,8 +152,8 @@ module mkpipelined(RVIfc);
         let rs1_idx_1 = getInstFields(imemInst1).rs1;
         let rs2_idx_1 = getInstFields(imemInst1).rs2;
         let rd_1 = getInstFields(imemInst1).rd;
-        let rs1_1 = (rs1_idx_1 == 0 ? 0 : rf[rs1_idx_1][1]);
-        let rs2_1 = (rs2_idx_1 == 0 ? 0 : rf[rs2_idx_1][1]);
+        let rs1_1 = (rs1_idx_1 == 0 ? 0 : rf[rs1_idx_1][2]);
+        let rs2_1 = (rs2_idx_1 == 0 ? 0 : rf[rs2_idx_1][2]);
         let dInst_1 = decodeInst(imemInst1);
 
         //F2D Data 2
@@ -168,59 +167,62 @@ module mkpipelined(RVIfc);
         let rs1_idx_2 = getInstFields(imemInst2).rs1;
         let rs2_idx_2 = getInstFields(imemInst2).rs2;
         let rd_2 = getInstFields(imemInst2).rd;
-        let rs1_2 = (rs1_idx_2 == 0 ? 0 : rf[rs1_idx_2][1]);
-        let rs2_2 = (rs2_idx_2 == 0 ? 0 : rf[rs2_idx_2][1]);
+        let rs1_2 = (rs1_idx_2 == 0 ? 0 : rf[rs1_idx_2][2]);
+        let rs2_2 = (rs2_idx_2 == 0 ? 0 : rf[rs2_idx_2][2]);
         let dInst_2 = decodeInst(imemInst2);
 
+        //Debug 1
         if (debug && count < maxCount) $display(pc_1, " [Decode] ", fshow(dInst_1));
+        if (konata_debug) decodeKonata(lfh, current_id_1);
+        if (konata_debug) labelKonataLeft(lfh,current_id_1, $format("Instr bits: %x",dInst_1.inst));
+        if (konata_debug) labelKonataLeft(lfh, current_id_1, $format(" Potential r1: %x, Potential r2: %x" , rs1_1, rs2_1)); 
         
         //if(noDependency(sb,ins1) && noDependency(sb, ins2) and noDependency(ins1, ins2))
-        if(!(sb[rs1_idx_1][4] || sb[rs2_idx_1][4] || sb[rd_1][4]) 
+        if(fEpoch_1 == mEpoch[1] && fEpoch_2 == mEpoch[1]
+            && !(sb[rs1_idx_1][4] || sb[rs2_idx_1][4] || sb[rd_1][4]) 
             && !(sb[rs1_idx_2][4] || sb[rs2_idx_2][4] || sb[rd_2][4]) 
             && !(rs1_idx_2 == rd_1 || rs2_idx_2 == rd_1 ) ) begin 
             
-            //Debug 1
-            if (konata_debug) decodeKonata(lfh, current_id_1);
-            if (konata_debug) labelKonataLeft(lfh,current_id_1, $format("Instr bits: %x",dInst_1.inst));
-            if (konata_debug) labelKonataLeft(lfh, current_id_1, $format(" Potential r1: %x, Potential r2: %x" , rs1_1, rs2_1)); 
-            if(fEpoch_1 == mEpoch[1]) begin
-                if(dInst_1.valid_rd && rd_1 != 0) begin
-                    sb[rd_1][4] <= True;
-                end 
-                d2e.enq1(D2E{dinst: dInst_1, pc: pc_1, ppc: ppc_1, epoch: fEpoch_1, rv1: rs1_1, rv2: rs2_1, rd_idx: rd_1, k_id: current_id_1});
+            if(dInst_1.valid_rd && rd_1 != 0) begin
+                sb[rd_1][4] <= True;
             end 
-
+            
             //Debug 2
             if (debug && count < maxCount) $display(pc_2, " [Decode] ", fshow(dInst_2));
             if (konata_debug) decodeKonata(lfh, current_id_2);
             if (konata_debug) labelKonataLeft(lfh,current_id_2, $format("Instr bits: %x",dInst_2.inst));
             if (konata_debug) labelKonataLeft(lfh, current_id_2, $format(" Potential r1: %x, Potential r2: %x" , rs1_2, rs2_2)); 
-            if (fEpoch_2 == mEpoch[1]) begin 
-                if(dInst_2.valid_rd && rd_2 != 0) begin
-                    sb[rd_2][5] <= True;
-                end 
-                d2e.enq2(D2E{dinst: dInst_2, pc: pc_2, ppc: ppc_2, epoch: fEpoch_2, rv1: rs1_2, rv2: rs2_2, rd_idx: rd_2, k_id: current_id_2});
+
+            if(dInst_2.valid_rd && rd_2 != 0) begin
+                sb[rd_2][5] <= True;
             end 
+
+            d2e.enq1(D2E{dinst: dInst_1, pc: pc_1, ppc: ppc_1, epoch: fEpoch_1, rv1: rs1_1, rv2: rs2_1, rd_idx: rd_1, k_id: current_id_1});
+            d2e.enq2(D2E{dinst: dInst_2, pc: pc_2, ppc: ppc_2, epoch: fEpoch_2, rv1: rs1_2, rv2: rs2_2, rd_idx: rd_2, k_id: current_id_2});
             f2d.deq1();
             f2d.deq2();
-            fromImem.deq();
+            fromImem.deq1();
+            fromImem.deq2();
         //if(noDependency(ins1, sb))
-        end else if (!(sb[rs1_idx_1][4] || sb[rs2_idx_1][4] || sb[rd_1][4])) begin 
-            //Debug 1
-            if (debug && count < maxCount) $display(pc_1, " [Decode] ", fshow(dInst_1));
-            if (konata_debug) decodeKonata(lfh, current_id_1);
-            if (konata_debug) labelKonataLeft(lfh,current_id_1, $format("Instr bits: %x",dInst_1.inst));
-            if (konata_debug) labelKonataLeft(lfh, current_id_1, $format(" Potential r1: %x, Potential r2: %x" , rs1_1, rs2_1));
+        end else if (fEpoch_1 == mEpoch[1] && !(sb[rs1_idx_1][4] || sb[rs2_idx_1][4] || sb[rd_1][4])) begin 
 
-            if(fEpoch_1 == mEpoch[1]) begin
-                if(dInst_1.valid_rd && rd_1 != 0) begin
-                    sb[rd_1][4] <= True;
-                end 
-                d2e.enq1(D2E{dinst: dInst_1, pc: pc_1, ppc: ppc_1, epoch: fEpoch_1, rv1: rs1_1, rv2: rs2_1, rd_idx: rd_1, k_id: current_id_1});
+            if(dInst_1.valid_rd && rd_1 != 0) begin
+                sb[rd_1][4] <= True;
             end 
+            if (debug && count < maxCount) $display(pc_1, " enqueued");
+            d2e.enq1(D2E{dinst: dInst_1, pc: pc_1, ppc: ppc_1, epoch: fEpoch_1, rv1: rs1_1, rv2: rs2_1, rd_idx: rd_1, k_id: current_id_1});
             f2d.deq1();
-            fromImem.deq();
-        end 
+            fromImem.deq1();
+        end else if (fEpoch_1 != mEpoch[1]) begin //wrong path instruction, drop it
+            f2d.deq1();
+            fromImem.deq1();
+            if (debug && count < maxCount) $display(pc_1, " killed");
+            if (fEpoch_2 != mEpoch[1]) begin  //second instruction is also wrong, drop it
+                if (debug && count < maxCount) $display(pc_2, " killed");
+                f2d.deq2();
+                fromImem.deq2();
+            end
+        end
     endrule
 
     rule execute if (!starting);
@@ -234,7 +236,6 @@ module mkpipelined(RVIfc);
         
 
         if(ins1.epoch != mEpoch[0]) begin 
-            
             sb[ins1.rd_idx][2] <= False;
             if (ins2.epoch != mEpoch[0]) begin
                 d2e.deq2();
@@ -369,8 +370,8 @@ module mkpipelined(RVIfc);
                 let fields = getInstFields(ins2.dinst.inst);
                 let rd_idx = fields.rd;
                 if (rd_idx != 0) begin 
-                    rf[rd_idx][0] <= ins2.data;
-                    sb[rd_idx][0] <= False;
+                    rf[rd_idx][1] <= ins2.data;
+                    sb[rd_idx][1] <= False;
                 end 
             end	    
             e2w.deq2();
@@ -403,8 +404,8 @@ module mkpipelined(RVIfc);
             let fields = getInstFields(ins1.dinst.inst);
             let rd_idx = fields.rd;
             if (rd_idx != 0) begin 
-                rf[rd_idx][1] <= ins1.data;
-                sb[rd_idx][1] <= False;
+                rf[rd_idx][0] <= ins1.data;
+                sb[rd_idx][0] <= False;
             end
         end
         
@@ -438,7 +439,16 @@ module mkpipelined(RVIfc);
 		return toImem.first();
     endmethod
     method Action getIResp(Mem2 a);
-    	fromImem.enq(a);
+        OneOrTwoWords data = a.data;
+        let imemInst1 = data[64:33];
+        let isTwoWords = data[32];
+        let imemInst2 = data[31:0];
+
+    	fromImem.enq1(Mem{byte_en: a.byte_en,  addr: a.addr, data: imemInst1});
+
+        if (isTwoWords == 1) begin
+            fromImem.enq2(Mem{byte_en: a.byte_en,  addr: a.addr + 4, data: imemInst2});
+        end
     endmethod
     method ActionValue#(Mem) getDReq();
 		toDmem.deq();
