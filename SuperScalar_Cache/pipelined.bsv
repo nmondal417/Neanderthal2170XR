@@ -56,6 +56,7 @@ typedef struct {
     Bit#(32) data;
     DecodedInst dinst;
     KonataId k_id; // <- This is a unique identifier per instructions, for logging purposes
+    Bit#(32) pc;
 } E2W deriving (Eq, FShow, Bits);
 
 (* synthesize *)
@@ -98,7 +99,7 @@ module mkpipelined(RVIfc);
 
     //Tics
     Reg#(Bool) starting <- mkReg(True);
-    Bit#(32) maxCount = 500;
+    Bit#(32) maxCount = 300;
     Reg#(Bit#(32)) count <- mkReg(0);
     rule doTic;
         if (debug && count < maxCount) begin
@@ -227,27 +228,35 @@ module mkpipelined(RVIfc);
 
     rule execute if (!starting);
         let ins1 = d2e.first1();
-        let ins2 = d2e.first2();
+        D2E ins2 = unpack(0);
+        let d2e_notEmpty2 = d2e.notEmpty2();
+        if (d2e_notEmpty2) ins2 = d2e.first2();
+        
+
         d2e.deq1();
 
         //Debug 
         if (debug && count < maxCount) $display(ins1.pc, " [Execute] ", fshow(ins1.dinst));
 		if (konata_debug) executeKonata(lfh, ins1.k_id);
-        
 
-        if(ins1.epoch != mEpoch[0]) begin 
+        if (debug && count < maxCount) $display(ins1.pc, " dequeued.");
+
+        if(ins1.epoch != mEpoch[0]) begin  //if first instruction epoch doesn't match, kill it
+            if (debug && count < maxCount) $display(ins1.pc, " killed.");
             sb[ins1.rd_idx][2] <= False;
-            if (ins2.epoch != mEpoch[0]) begin
+            if (d2e_notEmpty2 && ins2.epoch != mEpoch[0]) begin      //if second instruction epoch doesn't match, kill it
+                if (debug && count < maxCount) $display(ins2.pc, " killed.");
                 d2e.deq2();
                 sb[ins2.rd_idx][3] <= False;
             end
         end 
-        else if (isALU(ins1.dinst) && isALU(ins2.dinst) && ins2.epoch == mEpoch[0]) begin 
+
+        else if (d2e_notEmpty2 && isALU(ins1.dinst) && isALU(ins2.dinst) && ins2.epoch == mEpoch[0]) begin 
             //Execute Both
             d2e.deq2();
 
             if (debug && count < maxCount) $display(ins2.pc, " [Execute] ", fshow(ins2.dinst));
-		    if (konata_debug) executeKonata(lfh, ins2.k_id);
+            if (konata_debug) executeKonata(lfh, ins2.k_id);
 
             // Instruction 1 
             let imm_1 = getImmediate(ins1.dinst);
@@ -264,7 +273,7 @@ module mkpipelined(RVIfc);
             if (debug && count < maxCount) $display(ins1.pc, "Immediate: %d", imm_1);
             if (konata_debug) labelKonataLeft(lfh, ins1.k_id, $format(" ALU output: %x" , data_1));
         
-            e2w.enq1(E2W{mem_business: MemBusiness { isUnsigned : unpack(isUnsigned_1), size : size_1, offset : offset_1, mmio: mmio_1}, data: data_1, dinst: ins1.dinst, k_id: ins1.k_id});
+            e2w.enq1(E2W{mem_business: MemBusiness { isUnsigned : unpack(isUnsigned_1), size : size_1, offset : offset_1, mmio: mmio_1}, data: data_1, dinst: ins1.dinst, k_id: ins1.k_id, pc: ins1.pc});
 
             // Instruction 2 
             let imm_2 = getImmediate(ins2.dinst);
@@ -273,7 +282,7 @@ module mkpipelined(RVIfc);
             let isUnsigned_2 = 0;
             let funct3_2 = getInstFields(ins2.dinst.inst).funct3;
             let size_2 = funct3_2[1:0];
-            let addr_2 = ins2.rv1 + imm_1;
+            let addr_2 = ins2.rv1 + imm_2;
             Bit#(2) offset_2 = addr_2[1:0];
             
             if (debug && count < maxCount) $display(ins2.pc, "Register Source 1: %d", ins2.rv1);
@@ -282,8 +291,10 @@ module mkpipelined(RVIfc);
             if (konata_debug) labelKonataLeft(lfh, ins2.k_id, $format(" ALU output: %x" , data_2));
             
 
-            e2w.enq2(E2W{mem_business: MemBusiness { isUnsigned : unpack(isUnsigned_2), size : size_2, offset : offset_2, mmio: mmio_2}, data: data_2, dinst: ins2.dinst, k_id: ins2.k_id});
-        end else begin 
+            e2w.enq2(E2W{mem_business: MemBusiness { isUnsigned : unpack(isUnsigned_2), size : size_2, offset : offset_2, mmio: mmio_2}, data: data_2, dinst: ins2.dinst, k_id: ins2.k_id, pc: ins2.pc});
+        end
+        
+        else begin 
             //Original
             let imm_1 = getImmediate(ins1.dinst);
             Bool mmio_1 = False;
@@ -343,28 +354,32 @@ module mkpipelined(RVIfc);
             end 
             
             if (konata_debug) labelKonataLeft(lfh, ins1.k_id, $format(" ALU output: %x" , data_1));
-            e2w.enq1(E2W{mem_business: MemBusiness { isUnsigned : unpack(isUnsigned_1), size : size_1, offset : offset_1, mmio: mmio_1}, data: data_1, dinst: ins1.dinst, k_id: ins1.k_id});
+            if (debug && count < maxCount) $display(ins1.pc, " enqueued.");
+            e2w.enq1(E2W{mem_business: MemBusiness { isUnsigned : unpack(isUnsigned_1), size : size_1, offset : offset_1, mmio: mmio_1}, data: data_1, dinst: ins1.dinst, k_id: ins1.k_id, pc: ins1.pc});
         end 
+        
     endrule
 
     rule writeback if (!starting);
         // TODO
         let ins1 = e2w.first1();
-        let ins2 = e2w.first2();
+        E2W ins2 = unpack(0);
+        let e2w_notEmpty2 = e2w.notEmpty2();
+        if (e2w_notEmpty2) ins2 = e2w.first2();
         e2w.deq1();
 
         if (konata_debug) writebackKonata(lfh,ins1.k_id);
         if (konata_debug) retired.enq(ins1.k_id);
 
-        if(debug && count < maxCount) $display("[Writeback]", fshow(ins1.dinst));
+        if(debug && count < maxCount) $display(ins1.pc, " [Writeback]", fshow(ins1.dinst));
         if (!ins1.dinst.legal) begin
 			if(debug && count < maxCount) $display("[Writeback] Illegal Inst, Drop and fault: ", fshow(ins1.dinst));
 			//program_counter <= 0;	// Fault
 	    end
 
         // if (notMemory(ins1) and notMemory(ins2))
-        if(!isMemoryInst(ins1.dinst) && !isMemoryInst(ins2.dinst) ) begin 
-            if(debug && count < maxCount) $display("[Writeback]", fshow(ins2.dinst));
+        if(e2w_notEmpty2 && !isMemoryInst(ins1.dinst) && !isMemoryInst(ins2.dinst) ) begin 
+            if(debug && count < maxCount) $display(ins2.pc, " [Writeback]", fshow(ins2.dinst));
 
             if (ins2.dinst.valid_rd) begin
                 let fields = getInstFields(ins2.dinst.inst);

@@ -10,6 +10,7 @@ interface SupFifo#(type t);
     method Action deq2;
     method t first1;
     method t first2;
+    method Bool notEmpty2;
 endinterface
 
 module mkSupFifo(SupFifo#(t)) provisos (Bits#(t,tSz), Eq#(t));
@@ -72,6 +73,10 @@ module mkSupFifo(SupFifo#(t)) provisos (Bits#(t,tSz), Eq#(t));
 
     method t first2();
         return internalFifos[fifoIdxDeq2].first;
+    endmethod
+
+    method Bool notEmpty2();
+        return can_deq2;
     endmethod
 
     method Action deq1 if(can_deq1 && !want_deq1[0]);
@@ -155,6 +160,10 @@ module mkBypassSupFifo(SupFifo#(t)) provisos (Bits#(t,tSz), Eq#(t));
                 else return ?;
             end
         end
+    endmethod
+
+    method Bool notEmpty2();
+        return can_deq2;
     endmethod
 
     method Action deq1 if((want_enq1[1] != tagged Invalid || can_deq1) && !want_deq1[0] );
