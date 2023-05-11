@@ -1067,11 +1067,11 @@ Predicate: d2e.i_notEmpty &&
 			       3'd3))
 			     ? {d2e.first[213:194], 12'b0}
 			     : ((d2e.first[217] &&
-				 ((d2e_first____d982(...)[217]
-				   ? d2e_first____d982(...)[216:214]
+				 ((d2e_first____d1118(...)[217]
+				   ? d2e_first____d1118(...)[216:214]
 				   : (_ :: Bit 3)) ==
 				  3'd4))
-				? sext {d2e.first[213], d2e.first[201:194], d2e_first____d982(...)[202], d2e_first____d982(...)[212:203], 1'b0}
+				? sext {d2e.first[213], d2e.first[201:194], d2e_first____d1118(...)[202], d2e_first____d1118(...)[212:203], 1'b0}
 				: 32'd0))))))[31:2] ==
 		  30'd1006649341) ||
 		 ((d2e.first[116:85] +
@@ -1100,11 +1100,11 @@ Predicate: d2e.i_notEmpty &&
 			       3'd3))
 			     ? {d2e.first[213:194], 12'b0}
 			     : ((d2e.first[217] &&
-				 ((d2e_first____d982(...)[217]
-				   ? d2e_first____d982(...)[216:214]
+				 ((d2e_first____d1118(...)[217]
+				   ? d2e_first____d1118(...)[216:214]
 				   : (_ :: Bit 3)) ==
 				  3'd4))
-				? sext {d2e.first[213], d2e.first[201:194], d2e_first____d982(...)[202], d2e_first____d982(...)[212:203], 1'b0}
+				? sext {d2e.first[213], d2e.first[201:194], d2e_first____d1118(...)[202], d2e_first____d1118(...)[212:203], 1'b0}
 				: 32'd0))))))[31:2] ==
 		  30'd1006649342))
 		? ! toMMIO_rv.port0__read[68]
@@ -1613,7 +1613,6 @@ Blocking rules: (none)
 Logical execution order: getIResp,
 			 getDResp,
 			 getMMIOResp,
-			 doTic,
 			 fetch,
 			 getIReq,
 			 execute,
@@ -1621,6 +1620,7 @@ Logical execution order: getIResp,
 			 getMMIOReq,
 			 writeback,
 			 decode,
+			 doTic,
 			 administrative_konata_commit,
 			 administrative_konata_flush,
 			 administrative_konata_flush2,

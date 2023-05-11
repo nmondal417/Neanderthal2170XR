@@ -98,8 +98,8 @@ module mkpipelined(RVIfc);
     FIFO#(Mem) fromDmem <- mkBypassFIFO;
     FIFO#(Mem) toMMIO <- mkBypassFIFO;
     FIFO#(Mem) fromMMIO <- mkBypassFIFO;
-    let debug = False;
-    let mmio_debug = False;
+    let debug = True;
+    let mmio_debug = True;
     let konata_debug = True;
 
     Ehr#(2, Bit#(32)) program_counter <- mkEhr(32'h0000000);
