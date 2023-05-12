@@ -90,150 +90,6 @@ Rule: dram_dl1_try_move_2
 Predicate: True
 Blocking rules: (none)
  
-Rule: dram_dl1_try_move_3
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_4
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_5
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_6
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_7
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_8
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_9
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_10
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_11
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_12
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_13
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_14
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_15
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_16
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_17
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_18
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_19
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_20
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_21
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_22
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_23
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_24
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_25
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_26
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_27
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_28
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_29
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_30
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_31
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_32
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_33
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_34
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_35
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_36
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_37
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl1_try_move_38
-Predicate: True
-Blocking rules: (none)
- 
 Rule: dram_dl2_try_move
 Predicate: True
 Blocking rules: (none)
@@ -243,150 +99,6 @@ Predicate: True
 Blocking rules: (none)
  
 Rule: dram_dl2_try_move_2
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_3
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_4
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_5
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_6
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_7
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_8
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_9
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_10
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_11
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_12
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_13
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_14
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_15
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_16
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_17
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_18
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_19
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_20
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_21
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_22
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_23
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_24
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_25
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_26
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_27
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_28
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_29
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_30
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_31
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_32
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_33
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_34
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_35
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_36
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_37
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_dl2_try_move_38
 Predicate: True
 Blocking rules: (none)
  
@@ -1139,7 +851,7 @@ Predicate: i_cache_memReqQ.i_notEmpty &&
 Blocking rules: (none)
  
 Rule: connectDramICache
-Predicate: dram_dl1_d_39_rv.port0__read[512] && i_cache_memRespQ.i_notFull
+Predicate: dram_dl1_d_3_rv.port0__read[512] && i_cache_memRespQ.i_notFull
 Blocking rules: (none)
  
 Rule: connectDCacheDram
@@ -1148,7 +860,7 @@ Predicate: d_cache_memReqQ.i_notEmpty &&
 Blocking rules: (none)
  
 Rule: connectDramDCache
-Predicate: dram_dl2_d_39_rv.port0__read[512] && d_cache_memRespQ.i_notFull
+Predicate: dram_dl2_d_3_rv.port0__read[512] && d_cache_memRespQ.i_notFull
 Blocking rules: (none)
  
 Rule: requestI
@@ -1211,42 +923,6 @@ Logical execution order: tic,
 			 dram_dl1_try_move,
 			 dram_dl1_try_move_1,
 			 dram_dl1_try_move_2,
-			 dram_dl1_try_move_3,
-			 dram_dl1_try_move_4,
-			 dram_dl1_try_move_5,
-			 dram_dl1_try_move_6,
-			 dram_dl1_try_move_7,
-			 dram_dl1_try_move_8,
-			 dram_dl1_try_move_9,
-			 dram_dl1_try_move_10,
-			 dram_dl1_try_move_11,
-			 dram_dl1_try_move_12,
-			 dram_dl1_try_move_13,
-			 dram_dl1_try_move_14,
-			 dram_dl1_try_move_15,
-			 dram_dl1_try_move_16,
-			 dram_dl1_try_move_17,
-			 dram_dl1_try_move_18,
-			 dram_dl1_try_move_19,
-			 dram_dl1_try_move_20,
-			 dram_dl1_try_move_21,
-			 dram_dl1_try_move_22,
-			 dram_dl1_try_move_23,
-			 dram_dl1_try_move_24,
-			 dram_dl1_try_move_25,
-			 dram_dl1_try_move_26,
-			 dram_dl1_try_move_27,
-			 dram_dl1_try_move_28,
-			 dram_dl1_try_move_29,
-			 dram_dl1_try_move_30,
-			 dram_dl1_try_move_31,
-			 dram_dl1_try_move_32,
-			 dram_dl1_try_move_33,
-			 dram_dl1_try_move_34,
-			 dram_dl1_try_move_35,
-			 dram_dl1_try_move_36,
-			 dram_dl1_try_move_37,
-			 dram_dl1_try_move_38,
 			 dram_deq1,
 			 dram_bram_serverAdapterA_outData_enqueue,
 			 dram_bram_serverAdapterA_outData_dequeue,
@@ -1254,42 +930,6 @@ Logical execution order: tic,
 			 dram_dl2_try_move,
 			 dram_dl2_try_move_1,
 			 dram_dl2_try_move_2,
-			 dram_dl2_try_move_3,
-			 dram_dl2_try_move_4,
-			 dram_dl2_try_move_5,
-			 dram_dl2_try_move_6,
-			 dram_dl2_try_move_7,
-			 dram_dl2_try_move_8,
-			 dram_dl2_try_move_9,
-			 dram_dl2_try_move_10,
-			 dram_dl2_try_move_11,
-			 dram_dl2_try_move_12,
-			 dram_dl2_try_move_13,
-			 dram_dl2_try_move_14,
-			 dram_dl2_try_move_15,
-			 dram_dl2_try_move_16,
-			 dram_dl2_try_move_17,
-			 dram_dl2_try_move_18,
-			 dram_dl2_try_move_19,
-			 dram_dl2_try_move_20,
-			 dram_dl2_try_move_21,
-			 dram_dl2_try_move_22,
-			 dram_dl2_try_move_23,
-			 dram_dl2_try_move_24,
-			 dram_dl2_try_move_25,
-			 dram_dl2_try_move_26,
-			 dram_dl2_try_move_27,
-			 dram_dl2_try_move_28,
-			 dram_dl2_try_move_29,
-			 dram_dl2_try_move_30,
-			 dram_dl2_try_move_31,
-			 dram_dl2_try_move_32,
-			 dram_dl2_try_move_33,
-			 dram_dl2_try_move_34,
-			 dram_dl2_try_move_35,
-			 dram_dl2_try_move_36,
-			 dram_dl2_try_move_37,
-			 dram_dl2_try_move_38,
 			 dram_deq2,
 			 dram_bram_serverAdapterB_outData_enqueue,
 			 dram_bram_serverAdapterB_outData_dequeue,

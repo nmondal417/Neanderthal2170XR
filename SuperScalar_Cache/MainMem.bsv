@@ -83,8 +83,8 @@ module mkMainMem2(MainMem2);
     BRAM_Configure cfg = defaultValue();
     cfg.loadFormat = tagged Hex "mem.vmh";
     BRAM2Port#(LineAddr, MainMemResp) bram <- mkBRAM2Server(cfg);
-    DelayLine#(40, MainMemResp) dl1 <- mkDL(); // Delay by 20 cycles
-    DelayLine#(40, MainMemResp) dl2 <- mkDL(); // Delay by 20 cycles
+    DelayLine#(4, MainMemResp) dl1 <- mkDL(); // Delay by 2 cycles
+    DelayLine#(4, MainMemResp) dl2 <- mkDL(); // Delay by 2 cycles
     
     rule deq1;
         let r <- bram.portA.response.get();
