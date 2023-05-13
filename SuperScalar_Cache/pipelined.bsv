@@ -68,9 +68,9 @@ module mkpipelined(RVIfc);
     FIFO#(Mem) fromDmem <- mkBypassFIFO;
     SupFifo#(Mem) toMMIO <- mkBypassSupFifo;
     FIFO#(Mem) fromMMIO <- mkBypassFIFO;
-    let debug = False;
-    let mmio_debug = False;
-    let konata_debug = False;
+    let debug = True;
+    let mmio_debug = True;
+    let konata_debug = True;
 
     Reg#(Bit#(32)) totalExecuteCount <- mkReg(0);
     Reg#(Bit#(32)) doubleExecuteCount <- mkReg(0);
@@ -99,10 +99,16 @@ module mkpipelined(RVIfc);
 	// Code to support Konata visualization
     String dumpFile = "output.log" ;
     let lfh <- mkReg(InvalidFile);
-	Reg#(KonataId) fresh_id <- mkReg(0);
-	Reg#(KonataId) commit_id <- mkReg(0);
+	Ehr#(2, KonataId) fresh_id <- mkEhr(0);
+    Ehr#(2, KonataId) commit_id <- mkEhr(0);
+	//Reg#(KonataId) commit_id <- mkReg(0);
+    //Reg#(KonataId) commit2_id <- mkReg(0);
 	FIFO#(KonataId) retired <- mkFIFO;
-	FIFO#(KonataId) squashed <- mkFIFO;
+    FIFO#(KonataId) retired2 <- mkFIFO;
+	FIFO#(KonataId) squashed_execute <- mkFIFO;
+    FIFO#(KonataId) squashed2_execute <- mkFIFO;
+    FIFO#(KonataId) squashed_decode <- mkFIFO;
+    FIFO#(KonataId) squashed2_decode <- mkFIFO;
 
     //Tics
     Reg#(Bool) starting <- mkReg(True);
@@ -130,14 +136,16 @@ module mkpipelined(RVIfc);
         // You should put the pc that you fetch in pc_fetched
         // Below is the code to support Konata's visualization
         
-		let iid <- fetch1Konata(lfh, fresh_id, 0);
+		let iid <- fetch1Konata(lfh, fresh_id[0], 0);
         if (konata_debug) labelKonataLeft(lfh, iid, $format("PC %x",program_counter[0]));
         if(debug && count < maxCount) $display("Fetch %x", program_counter[0]);
         toImem.enq(Mem2{byte_en: 0,  addr: program_counter[0], data: 0});
         f2d.enq1(F2D{pc: program_counter[0], ppc: program_counter[0] + 4, epoch: mEpoch[0], k_id: iid});
         if  (program_counter[0][5:2] != 15 ) begin 
+            let iid2 <- fetch2Konata(lfh, fresh_id[1], 0);
+            if (konata_debug) label2KonataLeft(lfh, iid2, $format("PC %x",program_counter[0]+4));
             if(debug && count < maxCount) $display("Fetch %x", program_counter[0]+4);
-            f2d.enq2(F2D{pc: program_counter[0] + 4, ppc: program_counter[0] + 8, epoch: mEpoch[0], k_id: iid});
+            f2d.enq2(F2D{pc: program_counter[0] + 4, ppc: program_counter[0] + 8, epoch: mEpoch[0], k_id: iid2});
             program_counter[0] <= program_counter[0] + 8;
         end else begin 
             program_counter[0] <= program_counter[0] + 4;
@@ -184,6 +192,13 @@ module mkpipelined(RVIfc);
         if (konata_debug) decodeKonata(lfh, current_id_1);
         if (konata_debug) labelKonataLeft(lfh,current_id_1, $format("Instr bits: %x",dInst_1.inst));
         if (konata_debug) labelKonataLeft(lfh, current_id_1, $format(" Potential r1: %x, Potential r2: %x" , rs1_1, rs2_1)); 
+
+        //Debug 2
+        if (debug && count < maxCount) $display(pc_2, " [Decode] ", fshow(dInst_2));
+        if (konata_debug) decode2Konata(lfh, current_id_2);
+        if (konata_debug) label2KonataLeft(lfh,current_id_2, $format("Instr bits: %x",dInst_2.inst));
+        if (konata_debug) label2KonataLeft(lfh, current_id_2, $format(" Potential r1: %x, Potential r2: %x" , rs1_2, rs2_2)); 
+
         
         //if(noDependency(sb,ins1) && noDependency(sb, ins2) and noDependency(ins1, ins2))
         if(fEpoch_1 == mEpoch[2] && fEpoch_2 == mEpoch[2]
@@ -195,12 +210,7 @@ module mkpipelined(RVIfc);
                 sb[rd_1][4] <= True;
             end 
             
-            //Debug 2
-            if (debug && count < maxCount) $display(pc_2, " [Decode] ", fshow(dInst_2));
-            if (konata_debug) decodeKonata(lfh, current_id_2);
-            if (konata_debug) labelKonataLeft(lfh,current_id_2, $format("Instr bits: %x",dInst_2.inst));
-            if (konata_debug) labelKonataLeft(lfh, current_id_2, $format(" Potential r1: %x, Potential r2: %x" , rs1_2, rs2_2)); 
-
+            
             if(dInst_2.valid_rd && rd_2 != 0) begin
                 sb[rd_2][5] <= True;
             end 
@@ -224,8 +234,10 @@ module mkpipelined(RVIfc);
         end else if (fEpoch_1 != mEpoch[2]) begin //wrong path instruction, drop it
             f2d.deq1();
             fromImem.deq1();
+            if (konata_debug) squashed_decode.enq(current_id_1);
             if (debug && count < maxCount) $display(pc_1, " killed");
             if (fEpoch_2 != mEpoch[2]) begin  //second instruction is also wrong, drop it
+                if (konata_debug) squashed2_decode.enq(current_id_2);
                 if (debug && count < maxCount) $display(pc_2, " killed");
                 f2d.deq2();
                 fromImem.deq2();
@@ -459,7 +471,7 @@ module mkpipelined(RVIfc);
             if(dInst.valid_rd && rd_idx != 0) begin 
                 sb[d2e_data.rd_idx][2] <= False;
             end
-            //if (konata_debug) squashed2.enq(current_id);
+            if (konata_debug) squashed_execute.enq(current_id);
         end 
         
 
@@ -482,7 +494,7 @@ module mkpipelined(RVIfc);
         let current_id = d2e_data.k_id;
 
         if (debug && count < maxCount) $display(pc, " [Execute2] ", fshow(dInst), fshow(dEpoch));
-		if (konata_debug) executeKonata(lfh, current_id);
+		if (konata_debug) execute2Konata(lfh, current_id);
         //Execute 
 
         let can_do_two = True;
@@ -530,18 +542,18 @@ module mkpipelined(RVIfc);
                     if (isMMIO(addr)) begin 
                         if (mmio_debug) $display(count, " [Execute] MMIO", fshow(req));
                         toMMIO.enq2(req);
-                        if (konata_debug) labelKonataLeft(lfh,current_id, $format(" MMIO ", fshow(req)));
+                        if (konata_debug) label2KonataLeft(lfh,current_id, $format(" MMIO ", fshow(req)));
                         mmio = True;
                     end else begin 
-                        if (konata_debug) labelKonataLeft(lfh,current_id, $format(" MEM ", fshow(req)));
+                        if (konata_debug) label2KonataLeft(lfh,current_id, $format(" MEM ", fshow(req)));
                         toDmem.enq2(req);
                     end
                 end
                 else if (isControlInst(dInst)) begin
-                        if (konata_debug) labelKonataLeft(lfh,current_id, $format(" Ctrl instr "));
+                        if (konata_debug) label2KonataLeft(lfh,current_id, $format(" Ctrl instr "));
                         data = pc + 4;
                 end else begin 
-                    if (konata_debug) labelKonataLeft(lfh,current_id, $format(" Standard instr "));
+                    if (konata_debug) label2KonataLeft(lfh,current_id, $format(" Standard instr "));
                 end
                 let controlResult = execControl32(dInst.inst, rv1, rv2, imm, pc);
                 let nextPc = controlResult.nextPC;
@@ -551,7 +563,7 @@ module mkpipelined(RVIfc);
                     program_counter[2] <= nextPc;
                 end 
                 
-                if (konata_debug) labelKonataLeft(lfh,current_id, $format(" ALU output: %x" , data));
+                if (konata_debug) label2KonataLeft(lfh,current_id, $format(" ALU output: %x" , data));
                 if (debug && count < maxCount) $display(d2e_data.pc, " enqueued.");
                 e2w.enq2(E2W{mem_business: MemBusiness { isUnsigned : unpack(isUnsigned), size : size, offset : offset, mmio: mmio}, data: data, dinst: dInst, k_id: current_id, pc: pc});
             
@@ -559,7 +571,7 @@ module mkpipelined(RVIfc);
                 if(dInst.valid_rd && rd_idx != 0) begin 
                     sb[d2e_data.rd_idx][3] <= False;
                 end
-                //if (konata_debug) squashed2.enq(current_id);
+                if (konata_debug) squashed2_execute.enq(current_id);
             end 
         end
 
@@ -587,6 +599,9 @@ module mkpipelined(RVIfc);
         // if (notMemory(ins1) and notMemory(ins2))
         if(e2w_notEmpty2 && !isMemoryInst(ins1.dinst) && !isMemoryInst(ins2.dinst) ) begin 
             doubleWritebackCount <= doubleWritebackCount + 1;
+
+            if (konata_debug) writeback2Konata(lfh,ins2.k_id);
+            if (konata_debug) retired2.enq(ins2.k_id);
             if(debug && count < maxCount) $display(ins2.pc, " [Writeback]", fshow(ins2.dinst));
 
             if (ins2.dinst.valid_rd) begin
@@ -645,16 +660,40 @@ module mkpipelined(RVIfc);
 
 	// ADMINISTRATION:
 
-    rule administrative_konata_commit;
+    rule administrative_konata_commit1;
 		    retired.deq();
 		    let f = retired.first();
-		    commitKonata(lfh, f, commit_id);
+		    commitKonata(lfh, f, commit_id[0]);
+	endrule
+
+    rule administrative_konata_commit2;
+		    retired2.deq();
+		    let f = retired2.first();
+		    commit2Konata(lfh, f, commit_id[1]);
 	endrule
 		
-	rule administrative_konata_flush;
-		    squashed.deq();
-		    let f = squashed.first();
+	rule administrative_konata_flush1;
+		    squashed_decode.deq();
+		    let f = squashed_decode.first();
 		    squashKonata(lfh, f);
+	endrule
+
+    rule administrative_konata_flush2;
+		    squashed2_decode.deq();
+		    let f = squashed2_decode.first();
+		    squash2Konata(lfh, f);
+	endrule
+
+    rule administrative_konata_flush3;
+		    squashed_execute.deq();
+		    let f = squashed_execute.first();
+		    squashKonata(lfh, f);
+	endrule
+
+    rule administrative_konata_flush4;
+		    squashed2_execute.deq();
+		    let f = squashed2_execute.first();
+		    squash2Konata(lfh, f);
 	endrule
 
     rule exexcuteDoublePercents;
