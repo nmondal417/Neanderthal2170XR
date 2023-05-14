@@ -12,6 +12,7 @@ typedef struct { Bit#(4) byte_en; Bit#(32) addr; Bit#(65) data; } Mem2 deriving 
 typedef struct { Bit#(4) byte_en; Bit#(32) addr; Bit#(32) data; } Mem deriving (Eq, FShow, Bits);
 
 interface RVIfc;
+    method Bit#(32) getPC();
     method ActionValue#(Mem2) getIReq();
     method Action getIResp(Mem2 a);
     method ActionValue#(Mem) getDReq();
@@ -337,7 +338,9 @@ module mkpipelined(RVIfc);
 	endrule
 		
 
-		
+    method Bit#(32) getPC();
+        return program_counter[0];
+    endmethod
     method ActionValue#(Mem2) getIReq();
 		toImem.deq();
 		return toImem.first();

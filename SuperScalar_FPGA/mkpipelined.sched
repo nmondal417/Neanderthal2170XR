@@ -2,9 +2,15 @@
 
 Method schedule
 ---------------
+Method: getPC
+Ready signal: True
+Conflict-free: getPC, getIResp, getDResp, getMMIOResp
+Sequenced before (restricted): getIReq, getDReq, getMMIOReq
+ 
 Method: getIReq
 Ready signal: toImem_rv.port1__read[101]
 Conflict-free: getIResp, getDReq, getDResp, getMMIOReq, getMMIOResp
+Sequenced after (restricted): getPC
 Conflicts: getIReq
  
 Method: getIResp
@@ -27,30 +33,30 @@ Ready signal: fromImem_want_enq1_readBeforeLaterWrites_0.read &&
 				    ? fromImem_enqueueFifo_register
 				    : (_ :: Bit 1)) +
 				   1'd1))
-Conflict-free: getIReq, getDReq, getDResp, getMMIOReq, getMMIOResp
+Conflict-free: getPC, getIReq, getDReq, getDResp, getMMIOReq, getMMIOResp
 Conflicts: getIResp
  
 Method: getDReq
 Ready signal: toDmem_rv.port1__read[68]
 Conflict-free: getIReq, getIResp, getMMIOReq
-Sequenced after (restricted): getDResp, getMMIOResp
+Sequenced after (restricted): getPC, getDResp, getMMIOResp
 Conflicts: getDReq
  
 Method: getDResp
 Ready signal: ! fromDmem_rv.port0__read[68]
-Conflict-free: getIReq, getIResp, getMMIOResp
+Conflict-free: getPC, getIReq, getIResp, getMMIOResp
 Sequenced before (restricted): getDReq, getMMIOReq
 Conflicts: getDResp
  
 Method: getMMIOReq
 Ready signal: toMMIO_rv.port1__read[68]
 Conflict-free: getIReq, getIResp, getDReq
-Sequenced after (restricted): getDResp, getMMIOResp
+Sequenced after (restricted): getPC, getDResp, getMMIOResp
 Conflicts: getMMIOReq
  
 Method: getMMIOResp
 Ready signal: ! fromMMIO_rv.port0__read[68]
-Conflict-free: getIReq, getIResp, getDResp
+Conflict-free: getPC, getIReq, getIResp, getDResp
 Sequenced before (restricted): getDReq, getMMIOReq
 Conflicts: getMMIOResp
  
@@ -14058,7 +14064,8 @@ Predicate: (PrimArrayDynSelect (PrimBuildArray e2w_internalFifos_0.notEmpty
 	   (! starting)
 Blocking rules: (none)
  
-Logical execution order: getIResp,
+Logical execution order: getPC,
+			 getIResp,
 			 getDResp,
 			 getMMIOResp,
 			 fetch,

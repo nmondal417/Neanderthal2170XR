@@ -39,6 +39,7 @@ interface OrangeCrab;
 endinterface
 
 // Import BVI for the usb_bridge_top
+
 (* synthesize, default_clock_osc = "pin_clk", default_reset = "usr_btn" *)
 module top(OrangeCrab ifc);
     Reg#(Bit#(8)) cnt <- mkReg(0);
@@ -57,12 +58,12 @@ module top(OrangeCrab ifc);
 
     //Reg#(Bit#(8)) req <- mkReg(0);
 
-    FIFO#(Bit#(8)) to_host <- mkFIFO;
+    FIFO#(Bit#(8)) to_host <- mkFIFO; // ASCII To computer
     FIFOF#(Bit#(8)) from_host <- mkSizedFIFOF(8);
 
     /* Modifiable */
 
-       // Instantiate the dual ported memory
+    // Instantiate the dual ported memory
     MainMem2 dram <- mkMainMem2;
     //I-Cache
     Cache2 i_cache <- mkCache2;
@@ -73,13 +74,17 @@ module top(OrangeCrab ifc);
     Reg#(Mem2) ireq <- mkRegU;
     Reg#(Mem) dreq <- mkRegU;
     FIFO#(Mem) mmioreq <- mkFIFO;
-    Reg#(Bit#(32)) cycle_count <- mkReg(0);
+    Reg#(Bit#(24)) cycle_count <- mkReg(0);
 
     rule tic;
 	    cycle_count <= cycle_count + 1;
-        if (cycle_count[3] == 1  ) begin
-            r <= r + 1;
-        end 
+        // if (cycle_count == 0 ) begin
+        //     r <= (r == 255) ? 0: 255;
+        // end 
+        r <= rv_core.getPC()[7:0];
+        g <= rv_core.getPC()[15:8];
+        b <= rv_core.getPC()[23:16];
+
     endrule
 
     rule connectICacheDram;
@@ -103,9 +108,7 @@ module top(OrangeCrab ifc);
     rule requestI;
         let req <- rv_core.getIReq();
         ireq <= req;
-        //TODO check req struct
         i_cache.putFromProc(ProcReq2{write: req.byte_en[0], addr: req.addr, data: req.data});
-
     endrule
     
     rule responseI;
@@ -130,35 +133,31 @@ module top(OrangeCrab ifc);
         req.data = x;
         rv_core.getDResp(req);
     endrule
-  
     rule requestMMIO;
         let req <- rv_core.getMMIOReq;
-        
-        if (req.byte_en == 'hf) begin
-            if (req.addr == 'hf000_fff4) begin
-                // Write integer to STDERR
-                        $fwrite(stderr, "%0d", req.data);
-                        $fflush(stderr);
+        if (req.addr == 'hf000_fff4) begin
+            case (req.data)
+                32'd0: to_host.enq(8'd48);
+                32'd1: to_host.enq(8'd49);
+                32'd2: to_host.enq(8'd50);
+                32'd3: to_host.enq(8'd51);
+                32'd4: to_host.enq(8'd52);
+                32'd5: to_host.enq(8'd53);
+                32'd6: to_host.enq(8'd54);
+                32'd7: to_host.enq(8'd55);
+                32'd8: to_host.enq(8'd56);
+                32'd9: to_host.enq(8'd57);
+                default: to_host.enq(8'd48);
+            endcase
+        end else if (req.addr ==  'hf000_fff0) begin
+            to_host.enq(req.data[7:0]);
+        end else if (req.addr == 'hf000_fff8) begin
+            if(req.data == 0) begin 
+                // g <= 255;
+            end else begin 
+                // b <= 255;
             end
         end
-        if (req.addr ==  'hf000_fff0) begin
-                // Writing to STDERR
-                $fwrite(stderr, "%c", req.data[7:0]);
-                $fflush(stderr);
-        end else
-            if (req.addr == 'hf000_fff8) begin
-            // Exiting Simulation
-                if (req.data == 0) begin
-                        $fdisplay(stderr, "  [0;32mPASS[0m");
-                end
-                else
-                    begin
-                        $fdisplay(stderr, "  [0;31mFAIL[0m (%0d)", req.data);
-                    end
-                $fflush(stderr);
-                $finish;
-            end
-
         mmioreq.enq(req);
     endrule
 
@@ -182,7 +181,7 @@ module top(OrangeCrab ifc);
 
     //dont touch
     //recieving from host
-    rule get_k ;
+    rule get_k;
         Bit#(8) addr = 0;
         if (from_host.notFull) begin
             addr <- usb_core.uart_out();

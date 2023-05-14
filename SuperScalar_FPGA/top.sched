@@ -91,17 +91,17 @@ Blocking rules: (none)
 Rule: dram_bram_serverAdapterB_moveToOutFIFO
 Predicate: (dram_bram_serverAdapterB_s1[1] &&
 	    (! dram_bram_serverAdapterB_s1[0])) ||
-	   (dram_bram_serverAdapterB_s1[1] &&
-	    dram_bram_serverAdapterB_outData_ff.i_notFull)
+	   (dram_bram_serverAdapterB_outData_ff.i_notFull &&
+	    dram_bram_serverAdapterB_s1[1])
 Blocking rules: (none)
  
 Rule: dram_bram_serverAdapterB_overRun
-Predicate: ((! dram_bram_serverAdapterB_outData_beforeEnq.read) &&
+Predicate: ((! dram_bram_serverAdapterB_outData_ff.i_notFull) &&
+	    dram_bram_serverAdapterB_s1[1]) ||
+	   ((! dram_bram_serverAdapterB_outData_beforeEnq.read) &&
 	    dram_bram_serverAdapterB_s1[1]) ||
 	   (dram_bram_serverAdapterB_s1[1] &&
-	    (! dram_bram_serverAdapterB_outData_beforeDeq.read)) ||
-	   (dram_bram_serverAdapterB_s1[1] &&
-	    (! dram_bram_serverAdapterB_outData_ff.i_notFull))
+	    (! dram_bram_serverAdapterB_outData_beforeDeq.read))
 Blocking rules: (none)
  
 Rule: dram_dl1_try_move
@@ -496,17 +496,17 @@ Predicate: ((((i_cache_mshr_readBeforeLaterWrites_0.read &&
 	      ? i_cache_mshr_register
 	      : (_ :: Bit 3)) ==
 	     3'd2) &&
+	    i_cache_memReqQ.i_notFull &&
 	    i_cache_cache_data_serverAdapter_outData_ff.i_notEmpty &&
-	    i_cache_cache_data_serverAdapter_outData_beforeDeq.read &&
-	    i_cache_memReqQ.i_notFull) ||
+	    i_cache_cache_data_serverAdapter_outData_beforeDeq.read) ||
 	   ((((i_cache_mshr_readBeforeLaterWrites_0.read &&
 	       i_cache_mshr_readBeforeLaterWrites_1.read)
 	      ? i_cache_mshr_register
 	      : (_ :: Bit 3)) ==
 	     3'd2) &&
+	    i_cache_memReqQ.i_notFull &&
 	    i_cache_cache_data_serverAdapter_outData_enqw.whas &&
-	    i_cache_cache_data_serverAdapter_outData_beforeDeq.read &&
-	    i_cache_memReqQ.i_notFull)
+	    i_cache_cache_data_serverAdapter_outData_beforeDeq.read)
 Blocking rules: (none)
  
 Rule: i_cache_sendFillReq
@@ -529,15 +529,15 @@ Predicate: (i_cache_cache_data_serverAdapter_cnt .< 3'd3) &&
 Blocking rules: (none)
  
 Rule: d_cache_cache_data_serverAdapter_outData_enqueue
-Predicate: (d_cache_cache_data_serverAdapter_outData_enqw.whas &&
-	    (! d_cache_cache_data_serverAdapter_outData_dequeueing.whas)) ||
+Predicate: ((! d_cache_cache_data_serverAdapter_outData_dequeueing.whas) &&
+	    d_cache_cache_data_serverAdapter_outData_enqw.whas) ||
 	   (d_cache_cache_data_serverAdapter_outData_enqw.whas &&
 	    d_cache_cache_data_serverAdapter_outData_ff.i_notEmpty)
 Blocking rules: (none)
  
 Rule: d_cache_cache_data_serverAdapter_outData_dequeue
-Predicate: d_cache_cache_data_serverAdapter_outData_ff.i_notEmpty &&
-	   d_cache_cache_data_serverAdapter_outData_dequeueing.whas
+Predicate: d_cache_cache_data_serverAdapter_outData_dequeueing.whas &&
+	   d_cache_cache_data_serverAdapter_outData_ff.i_notEmpty
 Blocking rules: (none)
  
 Rule: d_cache_cache_data_serverAdapter_cnt_finalAdd
@@ -601,140 +601,6 @@ Blocking rules: (none)
  
 Rule: d_cache_startMiss_BRAMReq
 Predicate: ((((d_cache_mshr_readBeforeLaterWrites_0.read &&
-	       d_cache_mshr_readBeforeLaterWrites_1.read)
-	      ? d_cache_mshr_register
-	      : (_ :: Bit 3)) ==
-	     3'd1) &&
-	    (! (PrimArrayDynSelect (PrimBuildArray d_cache_dirtyArray_0
-						   d_cache_dirtyArray_1
-						   d_cache_dirtyArray_2
-						   d_cache_dirtyArray_3
-						   d_cache_dirtyArray_4
-						   d_cache_dirtyArray_5
-						   d_cache_dirtyArray_6
-						   d_cache_dirtyArray_7
-						   d_cache_dirtyArray_8
-						   d_cache_dirtyArray_9
-						   d_cache_dirtyArray_10
-						   d_cache_dirtyArray_11
-						   d_cache_dirtyArray_12
-						   d_cache_dirtyArray_13
-						   d_cache_dirtyArray_14
-						   d_cache_dirtyArray_15
-						   d_cache_dirtyArray_16
-						   d_cache_dirtyArray_17
-						   d_cache_dirtyArray_18
-						   d_cache_dirtyArray_19
-						   d_cache_dirtyArray_20
-						   d_cache_dirtyArray_21
-						   d_cache_dirtyArray_22
-						   d_cache_dirtyArray_23
-						   d_cache_dirtyArray_24
-						   d_cache_dirtyArray_25
-						   d_cache_dirtyArray_26
-						   d_cache_dirtyArray_27
-						   d_cache_dirtyArray_28
-						   d_cache_dirtyArray_29
-						   d_cache_dirtyArray_30
-						   d_cache_dirtyArray_31
-						   d_cache_dirtyArray_32
-						   d_cache_dirtyArray_33
-						   d_cache_dirtyArray_34
-						   d_cache_dirtyArray_35
-						   d_cache_dirtyArray_36
-						   d_cache_dirtyArray_37
-						   d_cache_dirtyArray_38
-						   d_cache_dirtyArray_39
-						   d_cache_dirtyArray_40
-						   d_cache_dirtyArray_41
-						   d_cache_dirtyArray_42
-						   d_cache_dirtyArray_43
-						   d_cache_dirtyArray_44
-						   d_cache_dirtyArray_45
-						   d_cache_dirtyArray_46
-						   d_cache_dirtyArray_47
-						   d_cache_dirtyArray_48
-						   d_cache_dirtyArray_49
-						   d_cache_dirtyArray_50
-						   d_cache_dirtyArray_51
-						   d_cache_dirtyArray_52
-						   d_cache_dirtyArray_53
-						   d_cache_dirtyArray_54
-						   d_cache_dirtyArray_55
-						   d_cache_dirtyArray_56
-						   d_cache_dirtyArray_57
-						   d_cache_dirtyArray_58
-						   d_cache_dirtyArray_59
-						   d_cache_dirtyArray_60
-						   d_cache_dirtyArray_61
-						   d_cache_dirtyArray_62
-						   d_cache_dirtyArray_63
-						   d_cache_dirtyArray_64
-						   d_cache_dirtyArray_65
-						   d_cache_dirtyArray_66
-						   d_cache_dirtyArray_67
-						   d_cache_dirtyArray_68
-						   d_cache_dirtyArray_69
-						   d_cache_dirtyArray_70
-						   d_cache_dirtyArray_71
-						   d_cache_dirtyArray_72
-						   d_cache_dirtyArray_73
-						   d_cache_dirtyArray_74
-						   d_cache_dirtyArray_75
-						   d_cache_dirtyArray_76
-						   d_cache_dirtyArray_77
-						   d_cache_dirtyArray_78
-						   d_cache_dirtyArray_79
-						   d_cache_dirtyArray_80
-						   d_cache_dirtyArray_81
-						   d_cache_dirtyArray_82
-						   d_cache_dirtyArray_83
-						   d_cache_dirtyArray_84
-						   d_cache_dirtyArray_85
-						   d_cache_dirtyArray_86
-						   d_cache_dirtyArray_87
-						   d_cache_dirtyArray_88
-						   d_cache_dirtyArray_89
-						   d_cache_dirtyArray_90
-						   d_cache_dirtyArray_91
-						   d_cache_dirtyArray_92
-						   d_cache_dirtyArray_93
-						   d_cache_dirtyArray_94
-						   d_cache_dirtyArray_95
-						   d_cache_dirtyArray_96
-						   d_cache_dirtyArray_97
-						   d_cache_dirtyArray_98
-						   d_cache_dirtyArray_99
-						   d_cache_dirtyArray_100
-						   d_cache_dirtyArray_101
-						   d_cache_dirtyArray_102
-						   d_cache_dirtyArray_103
-						   d_cache_dirtyArray_104
-						   d_cache_dirtyArray_105
-						   d_cache_dirtyArray_106
-						   d_cache_dirtyArray_107
-						   d_cache_dirtyArray_108
-						   d_cache_dirtyArray_109
-						   d_cache_dirtyArray_110
-						   d_cache_dirtyArray_111
-						   d_cache_dirtyArray_112
-						   d_cache_dirtyArray_113
-						   d_cache_dirtyArray_114
-						   d_cache_dirtyArray_115
-						   d_cache_dirtyArray_116
-						   d_cache_dirtyArray_117
-						   d_cache_dirtyArray_118
-						   d_cache_dirtyArray_119
-						   d_cache_dirtyArray_120
-						   d_cache_dirtyArray_121
-						   d_cache_dirtyArray_122
-						   d_cache_dirtyArray_123
-						   d_cache_dirtyArray_124
-						   d_cache_dirtyArray_125
-						   d_cache_dirtyArray_126
-						   d_cache_dirtyArray_127)
-				   d_cache_missReq[44:38]))) ||
-	   ((((d_cache_mshr_readBeforeLaterWrites_0.read &&
 	       d_cache_mshr_readBeforeLaterWrites_1.read)
 	      ? d_cache_mshr_register
 	      : (_ :: Bit 3)) ==
@@ -868,6 +734,140 @@ Predicate: ((((d_cache_mshr_readBeforeLaterWrites_0.read &&
 						   d_cache_validArray_126
 						   d_cache_validArray_127)
 				   d_cache_missReq[44:38]))) ||
+	   ((((d_cache_mshr_readBeforeLaterWrites_0.read &&
+	       d_cache_mshr_readBeforeLaterWrites_1.read)
+	      ? d_cache_mshr_register
+	      : (_ :: Bit 3)) ==
+	     3'd1) &&
+	    (! (PrimArrayDynSelect (PrimBuildArray d_cache_dirtyArray_0
+						   d_cache_dirtyArray_1
+						   d_cache_dirtyArray_2
+						   d_cache_dirtyArray_3
+						   d_cache_dirtyArray_4
+						   d_cache_dirtyArray_5
+						   d_cache_dirtyArray_6
+						   d_cache_dirtyArray_7
+						   d_cache_dirtyArray_8
+						   d_cache_dirtyArray_9
+						   d_cache_dirtyArray_10
+						   d_cache_dirtyArray_11
+						   d_cache_dirtyArray_12
+						   d_cache_dirtyArray_13
+						   d_cache_dirtyArray_14
+						   d_cache_dirtyArray_15
+						   d_cache_dirtyArray_16
+						   d_cache_dirtyArray_17
+						   d_cache_dirtyArray_18
+						   d_cache_dirtyArray_19
+						   d_cache_dirtyArray_20
+						   d_cache_dirtyArray_21
+						   d_cache_dirtyArray_22
+						   d_cache_dirtyArray_23
+						   d_cache_dirtyArray_24
+						   d_cache_dirtyArray_25
+						   d_cache_dirtyArray_26
+						   d_cache_dirtyArray_27
+						   d_cache_dirtyArray_28
+						   d_cache_dirtyArray_29
+						   d_cache_dirtyArray_30
+						   d_cache_dirtyArray_31
+						   d_cache_dirtyArray_32
+						   d_cache_dirtyArray_33
+						   d_cache_dirtyArray_34
+						   d_cache_dirtyArray_35
+						   d_cache_dirtyArray_36
+						   d_cache_dirtyArray_37
+						   d_cache_dirtyArray_38
+						   d_cache_dirtyArray_39
+						   d_cache_dirtyArray_40
+						   d_cache_dirtyArray_41
+						   d_cache_dirtyArray_42
+						   d_cache_dirtyArray_43
+						   d_cache_dirtyArray_44
+						   d_cache_dirtyArray_45
+						   d_cache_dirtyArray_46
+						   d_cache_dirtyArray_47
+						   d_cache_dirtyArray_48
+						   d_cache_dirtyArray_49
+						   d_cache_dirtyArray_50
+						   d_cache_dirtyArray_51
+						   d_cache_dirtyArray_52
+						   d_cache_dirtyArray_53
+						   d_cache_dirtyArray_54
+						   d_cache_dirtyArray_55
+						   d_cache_dirtyArray_56
+						   d_cache_dirtyArray_57
+						   d_cache_dirtyArray_58
+						   d_cache_dirtyArray_59
+						   d_cache_dirtyArray_60
+						   d_cache_dirtyArray_61
+						   d_cache_dirtyArray_62
+						   d_cache_dirtyArray_63
+						   d_cache_dirtyArray_64
+						   d_cache_dirtyArray_65
+						   d_cache_dirtyArray_66
+						   d_cache_dirtyArray_67
+						   d_cache_dirtyArray_68
+						   d_cache_dirtyArray_69
+						   d_cache_dirtyArray_70
+						   d_cache_dirtyArray_71
+						   d_cache_dirtyArray_72
+						   d_cache_dirtyArray_73
+						   d_cache_dirtyArray_74
+						   d_cache_dirtyArray_75
+						   d_cache_dirtyArray_76
+						   d_cache_dirtyArray_77
+						   d_cache_dirtyArray_78
+						   d_cache_dirtyArray_79
+						   d_cache_dirtyArray_80
+						   d_cache_dirtyArray_81
+						   d_cache_dirtyArray_82
+						   d_cache_dirtyArray_83
+						   d_cache_dirtyArray_84
+						   d_cache_dirtyArray_85
+						   d_cache_dirtyArray_86
+						   d_cache_dirtyArray_87
+						   d_cache_dirtyArray_88
+						   d_cache_dirtyArray_89
+						   d_cache_dirtyArray_90
+						   d_cache_dirtyArray_91
+						   d_cache_dirtyArray_92
+						   d_cache_dirtyArray_93
+						   d_cache_dirtyArray_94
+						   d_cache_dirtyArray_95
+						   d_cache_dirtyArray_96
+						   d_cache_dirtyArray_97
+						   d_cache_dirtyArray_98
+						   d_cache_dirtyArray_99
+						   d_cache_dirtyArray_100
+						   d_cache_dirtyArray_101
+						   d_cache_dirtyArray_102
+						   d_cache_dirtyArray_103
+						   d_cache_dirtyArray_104
+						   d_cache_dirtyArray_105
+						   d_cache_dirtyArray_106
+						   d_cache_dirtyArray_107
+						   d_cache_dirtyArray_108
+						   d_cache_dirtyArray_109
+						   d_cache_dirtyArray_110
+						   d_cache_dirtyArray_111
+						   d_cache_dirtyArray_112
+						   d_cache_dirtyArray_113
+						   d_cache_dirtyArray_114
+						   d_cache_dirtyArray_115
+						   d_cache_dirtyArray_116
+						   d_cache_dirtyArray_117
+						   d_cache_dirtyArray_118
+						   d_cache_dirtyArray_119
+						   d_cache_dirtyArray_120
+						   d_cache_dirtyArray_121
+						   d_cache_dirtyArray_122
+						   d_cache_dirtyArray_123
+						   d_cache_dirtyArray_124
+						   d_cache_dirtyArray_125
+						   d_cache_dirtyArray_126
+						   d_cache_dirtyArray_127)
+				   d_cache_missReq[44:38]))) ||
 	   ((d_cache_cache_data_serverAdapter_cnt .< 3'd3) &&
 	    (((d_cache_mshr_readBeforeLaterWrites_0.read &&
 	       d_cache_mshr_readBeforeLaterWrites_1.read)
@@ -988,8 +988,8 @@ Predicate: (d_cache_cache_data_serverAdapter_cnt .< 3'd3) &&
 	       : d_cache_mshr_register
 	     : (_ :: Bit 3)) ==
 	    3'd0) &&
-	   rv_core.RDY_getDReq &&
-	   d_cache_storeQ.i_notFull && d_cache_loadOffsetQ.i_notFull
+	   d_cache_storeQ.i_notFull &&
+	   d_cache_loadOffsetQ.i_notFull && rv_core.RDY_getDReq
 Blocking rules: d_cache_waitStore,
 		d_cache_waitFillResp,
 		d_cache_startMiss_BRAMReq
@@ -999,11 +999,11 @@ Predicate: rv_core.RDY_getDResp && d_cache_hitQ_rv.port1__read[32]
 Blocking rules: (none)
  
 Rule: requestMMIO
-Predicate: rv_core.RDY_getMMIOReq && mmioreq.i_notFull
+Predicate: rv_core.RDY_getMMIOReq && to_host.i_notFull && mmioreq.i_notFull
 Blocking rules: (none)
  
 Rule: responseMMIO
-Predicate: mmioreq.i_notEmpty && rv_core.RDY_getMMIOResp
+Predicate: rv_core.RDY_getMMIOResp && mmioreq.i_notEmpty
 Blocking rules: (none)
  
 Rule: reset_setup

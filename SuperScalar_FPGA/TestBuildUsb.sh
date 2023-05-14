@@ -15,7 +15,13 @@ cp gsd_orange.v build/.
 cp gsd_orangecrab_sram.init build/.
 cp FIFO2.v build/.
 cp SizedFIFO.v build/.
-cp BRAM2BE.v build/.
+# cp BRAM2BE.v build/.
+cp RevertReg.v build/.
+cp BRAM1.v build/.
+#cp  BRAM2.v build/.
+cp BRAM2Load.v build/.
+cp mem.vmh build/.
+cp FIFO1.v build/.
 
 # bsc -p $BLUEAXI:$BLUELIB:+ --show-schedule -opt-AndOr -opt-bool -opt-ATS  --aggressive-conditions -bdir build -vdir build -verilog -u OrangeCrabTop.bsv
 bsc --show-schedule -opt-AndOr -opt-bool -opt-ATS  --aggressive-conditions -bdir build -vdir build -verilog -u OrangeCrabTop.bsv

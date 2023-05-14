@@ -1,3 +1,4 @@
+(* blackbox *)
 module rising_edge_detector ( 
   input clk,
   input in,
@@ -11,7 +12,7 @@ module rising_edge_detector (
 
   assign out = !in_q && in;
 endmodule
-
+(* blackbox *)
 module falling_edge_detector ( 
   input clk,
   input in,
