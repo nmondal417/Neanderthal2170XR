@@ -68,9 +68,9 @@ module mkpipelined(RVIfc);
     FIFO#(Mem) fromDmem <- mkBypassFIFO;
     SupFifo#(Mem) toMMIO <- mkBypassSupFifo;
     FIFO#(Mem) fromMMIO <- mkBypassFIFO;
-    let debug = True;
+    let debug = False;
     let mmio_debug = True;
-    let konata_debug = True;
+    let konata_debug = False;
 
     Reg#(Bit#(32)) totalExecuteCount <- mkReg(0);
     Reg#(Bit#(32)) doubleExecuteCount <- mkReg(0);
