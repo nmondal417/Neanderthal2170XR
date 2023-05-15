@@ -1,0 +1,480 @@
+=== Generated schedule for mktop_pipelined ===
+
+Rule schedule
+-------------
+Rule: dram_bram_serverAdapter_outData_enqueue
+Predicate: dram_bram_serverAdapter_outData_enqw.whas &&
+	   ((! dram_bram_serverAdapter_outData_dequeueing.whas) ||
+	    dram_bram_serverAdapter_outData_ff.i_notEmpty)
+Blocking rules: (none)
+ 
+Rule: dram_bram_serverAdapter_outData_dequeue
+Predicate: dram_bram_serverAdapter_outData_dequeueing.whas &&
+	   dram_bram_serverAdapter_outData_ff.i_notEmpty
+Blocking rules: (none)
+ 
+Rule: dram_bram_serverAdapter_cnt_finalAdd
+Predicate: dram_bram_serverAdapter_cnt_1.whas ||
+	   dram_bram_serverAdapter_cnt_2.whas ||
+	   dram_bram_serverAdapter_cnt_3.whas
+Blocking rules: (none)
+ 
+Rule: dram_bram_serverAdapter_s1__dreg_update
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: dram_bram_serverAdapter_stageReadResponseAlways
+Predicate: dram_bram_serverAdapter_writeWithResp.whas
+Blocking rules: (none)
+ 
+Rule: dram_bram_serverAdapter_moveToOutFIFO
+Predicate: ((! dram_bram_serverAdapter_s1[0]) ||
+	    dram_bram_serverAdapter_outData_ff.i_notFull) &&
+	   dram_bram_serverAdapter_s1[1]
+Blocking rules: (none)
+ 
+Rule: dram_bram_serverAdapter_overRun
+Predicate: dram_bram_serverAdapter_s1[1] &&
+	   ((! dram_bram_serverAdapter_outData_beforeEnq.read) ||
+	    (! dram_bram_serverAdapter_outData_beforeDeq.read) ||
+	    (! dram_bram_serverAdapter_outData_ff.i_notFull))
+Blocking rules: (none)
+ 
+Rule: dram_dl1_try_move
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: dram_dl1_try_move_1
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: dram_dl1_try_move_2
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: dram_dl2_try_move
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: dram_dl2_try_move_1
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: dram_dl2_try_move_2
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: dram_deq1
+Predicate: dram_bram_serverAdapter_outData_beforeDeq.read &&
+	   (dram_bram_serverAdapter_outData_ff.i_notEmpty ||
+	    dram_bram_serverAdapter_outData_enqw.whas) &&
+	   dram_reqQ.i_notEmpty && (! dram_dl1_d_0_rv.port1__read[128]) &&
+	   dram_reqQ.first[0]
+Blocking rules: (none)
+ 
+Rule: dram_deq2
+Predicate: dram_bram_serverAdapter_outData_beforeDeq.read &&
+	   (dram_bram_serverAdapter_outData_ff.i_notEmpty ||
+	    dram_bram_serverAdapter_outData_enqw.whas) &&
+	   dram_reqQ.i_notEmpty && (! dram_dl2_d_0_rv.port1__read[128]) &&
+	   (! dram_reqQ.first[0])
+Blocking rules: (none)
+ 
+Rule: i_cache_cache_data_serverAdapter_outData_enqueue
+Predicate: i_cache_cache_data_serverAdapter_outData_enqw.whas &&
+	   ((! i_cache_cache_data_serverAdapter_outData_dequeueing.whas) ||
+	    i_cache_cache_data_serverAdapter_outData_ff.i_notEmpty)
+Blocking rules: (none)
+ 
+Rule: i_cache_cache_data_serverAdapter_outData_dequeue
+Predicate: i_cache_cache_data_serverAdapter_outData_dequeueing.whas &&
+	   i_cache_cache_data_serverAdapter_outData_ff.i_notEmpty
+Blocking rules: (none)
+ 
+Rule: i_cache_cache_data_serverAdapter_cnt_finalAdd
+Predicate: i_cache_cache_data_serverAdapter_cnt_1.whas ||
+	   i_cache_cache_data_serverAdapter_cnt_2.whas ||
+	   i_cache_cache_data_serverAdapter_cnt_3.whas
+Blocking rules: (none)
+ 
+Rule: i_cache_cache_data_serverAdapter_s1__dreg_update
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: i_cache_cache_data_serverAdapter_stageReadResponseAlways
+Predicate: i_cache_cache_data_serverAdapter_writeWithResp.whas
+Blocking rules: (none)
+ 
+Rule: i_cache_cache_data_serverAdapter_moveToOutFIFO
+Predicate: ((! i_cache_cache_data_serverAdapter_s1[0]) ||
+	    i_cache_cache_data_serverAdapter_outData_ff.i_notFull) &&
+	   i_cache_cache_data_serverAdapter_s1[1]
+Blocking rules: (none)
+ 
+Rule: i_cache_cache_data_serverAdapter_overRun
+Predicate: i_cache_cache_data_serverAdapter_s1[1] &&
+	   ((! i_cache_cache_data_serverAdapter_outData_beforeEnq.read) ||
+	    (! i_cache_cache_data_serverAdapter_outData_beforeDeq.read) ||
+	    (! i_cache_cache_data_serverAdapter_outData_ff.i_notFull))
+Blocking rules: (none)
+ 
+Rule: i_cache_mshr_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: i_cache_bram_to_hitQ
+Predicate: i_cache_cache_data_serverAdapter_outData_beforeDeq.read &&
+	   (i_cache_cache_data_serverAdapter_outData_ff.i_notEmpty ||
+	    i_cache_cache_data_serverAdapter_outData_enqw.whas) &&
+	   i_cache_loadOffsetQ.i_notEmpty &&
+	   (! i_cache_hitQ_rv.port0__read[65]) &&
+	   (((i_cache_mshr_readBeforeLaterWrites_0.read &&
+	      i_cache_mshr_readBeforeLaterWrites_1.read)
+	     ? i_cache_mshr_register
+	     : (_ :: Bit 3)) ==
+	    3'd5)
+Blocking rules: (none)
+ 
+Rule: i_cache_startMiss_BRAMReq
+Predicate: ((! (PrimArrayDynSelect (PrimBuildArray i_cache_dirtyArray_0
+						   i_cache_dirtyArray_1
+						   i_cache_dirtyArray_2
+						   i_cache_dirtyArray_3
+						   i_cache_dirtyArray_4
+						   i_cache_dirtyArray_5
+						   i_cache_dirtyArray_6
+						   i_cache_dirtyArray_7
+						   i_cache_dirtyArray_8
+						   i_cache_dirtyArray_9
+						   i_cache_dirtyArray_10
+						   i_cache_dirtyArray_11
+						   i_cache_dirtyArray_12
+						   i_cache_dirtyArray_13
+						   i_cache_dirtyArray_14
+						   i_cache_dirtyArray_15)
+				   i_cache_missReq[72:69])) ||
+	    (! (PrimArrayDynSelect (PrimBuildArray i_cache_validArray_0
+						   i_cache_validArray_1
+						   i_cache_validArray_2
+						   i_cache_validArray_3
+						   i_cache_validArray_4
+						   i_cache_validArray_5
+						   i_cache_validArray_6
+						   i_cache_validArray_7
+						   i_cache_validArray_8
+						   i_cache_validArray_9
+						   i_cache_validArray_10
+						   i_cache_validArray_11
+						   i_cache_validArray_12
+						   i_cache_validArray_13
+						   i_cache_validArray_14
+						   i_cache_validArray_15)
+				   i_cache_missReq[72:69])) ||
+	    (i_cache_cache_data_serverAdapter_cnt .< 3'd3)) &&
+	   (((i_cache_mshr_readBeforeLaterWrites_0.read &&
+	      i_cache_mshr_readBeforeLaterWrites_1.read)
+	     ? i_cache_mshr_register
+	     : (_ :: Bit 3)) ==
+	    3'd1)
+Blocking rules: (none)
+ 
+Rule: i_cache_startMiss_BRAMResp
+Predicate: i_cache_cache_data_serverAdapter_outData_beforeDeq.read &&
+	   (i_cache_cache_data_serverAdapter_outData_ff.i_notEmpty ||
+	    i_cache_cache_data_serverAdapter_outData_enqw.whas) &&
+	   i_cache_memReqQ.i_notFull &&
+	   (((i_cache_mshr_readBeforeLaterWrites_0.read &&
+	      i_cache_mshr_readBeforeLaterWrites_1.read)
+	     ? i_cache_mshr_register
+	     : (_ :: Bit 3)) ==
+	    3'd2)
+Blocking rules: (none)
+ 
+Rule: i_cache_sendFillReq
+Predicate: i_cache_memReqQ.i_notFull &&
+	   (((i_cache_mshr_readBeforeLaterWrites_0.read &&
+	      i_cache_mshr_readBeforeLaterWrites_1.read)
+	     ? i_cache_mshr_register
+	     : (_ :: Bit 3)) ==
+	    3'd3)
+Blocking rules: (none)
+ 
+Rule: i_cache_waitFillResp
+Predicate: (! i_cache_hitQ_rv.port0__read[65]) &&
+	   (i_cache_cache_data_serverAdapter_cnt .< 3'd3) &&
+	   i_cache_memRespQ.i_notEmpty &&
+	   (((i_cache_mshr_readBeforeLaterWrites_0.read &&
+	      i_cache_mshr_readBeforeLaterWrites_1.read)
+	     ? i_cache_mshr_register
+	     : (_ :: Bit 3)) ==
+	    3'd4)
+Blocking rules: (none)
+ 
+Rule: d_cache_cache_data_serverAdapter_outData_enqueue
+Predicate: d_cache_cache_data_serverAdapter_outData_enqw.whas &&
+	   ((! d_cache_cache_data_serverAdapter_outData_dequeueing.whas) ||
+	    d_cache_cache_data_serverAdapter_outData_ff.i_notEmpty)
+Blocking rules: (none)
+ 
+Rule: d_cache_cache_data_serverAdapter_outData_dequeue
+Predicate: d_cache_cache_data_serverAdapter_outData_dequeueing.whas &&
+	   d_cache_cache_data_serverAdapter_outData_ff.i_notEmpty
+Blocking rules: (none)
+ 
+Rule: d_cache_cache_data_serverAdapter_cnt_finalAdd
+Predicate: d_cache_cache_data_serverAdapter_cnt_1.whas ||
+	   d_cache_cache_data_serverAdapter_cnt_2.whas ||
+	   d_cache_cache_data_serverAdapter_cnt_3.whas
+Blocking rules: (none)
+ 
+Rule: d_cache_cache_data_serverAdapter_s1__dreg_update
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: d_cache_cache_data_serverAdapter_stageReadResponseAlways
+Predicate: d_cache_cache_data_serverAdapter_writeWithResp.whas
+Blocking rules: (none)
+ 
+Rule: d_cache_cache_data_serverAdapter_moveToOutFIFO
+Predicate: ((! d_cache_cache_data_serverAdapter_s1[0]) ||
+	    d_cache_cache_data_serverAdapter_outData_ff.i_notFull) &&
+	   d_cache_cache_data_serverAdapter_s1[1]
+Blocking rules: (none)
+ 
+Rule: d_cache_cache_data_serverAdapter_overRun
+Predicate: d_cache_cache_data_serverAdapter_s1[1] &&
+	   ((! d_cache_cache_data_serverAdapter_outData_beforeEnq.read) ||
+	    (! d_cache_cache_data_serverAdapter_outData_beforeDeq.read) ||
+	    (! d_cache_cache_data_serverAdapter_outData_ff.i_notFull))
+Blocking rules: (none)
+ 
+Rule: d_cache_mshr_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: d_cache_lockL1_canonicalize
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: d_cache_bram_to_hitQ
+Predicate: d_cache_cache_data_serverAdapter_outData_beforeDeq.read &&
+	   (d_cache_cache_data_serverAdapter_outData_ff.i_notEmpty ||
+	    d_cache_cache_data_serverAdapter_outData_enqw.whas) &&
+	   d_cache_loadOffsetQ.i_notEmpty &&
+	   (! d_cache_hitQ_rv.port0__read[32]) &&
+	   (((d_cache_mshr_readBeforeLaterWrites_0.read &&
+	      d_cache_mshr_readBeforeLaterWrites_1.read)
+	     ? d_cache_mshr_register
+	     : (_ :: Bit 3)) ==
+	    3'd5)
+Blocking rules: (none)
+ 
+Rule: d_cache_startMiss_BRAMReq
+Predicate: ((! (PrimArrayDynSelect (PrimBuildArray d_cache_dirtyArray_0
+						   d_cache_dirtyArray_1
+						   d_cache_dirtyArray_2
+						   d_cache_dirtyArray_3
+						   d_cache_dirtyArray_4
+						   d_cache_dirtyArray_5
+						   d_cache_dirtyArray_6
+						   d_cache_dirtyArray_7
+						   d_cache_dirtyArray_8
+						   d_cache_dirtyArray_9
+						   d_cache_dirtyArray_10
+						   d_cache_dirtyArray_11
+						   d_cache_dirtyArray_12
+						   d_cache_dirtyArray_13
+						   d_cache_dirtyArray_14
+						   d_cache_dirtyArray_15)
+				   d_cache_missReq[39:36])) ||
+	    (! (PrimArrayDynSelect (PrimBuildArray d_cache_validArray_0
+						   d_cache_validArray_1
+						   d_cache_validArray_2
+						   d_cache_validArray_3
+						   d_cache_validArray_4
+						   d_cache_validArray_5
+						   d_cache_validArray_6
+						   d_cache_validArray_7
+						   d_cache_validArray_8
+						   d_cache_validArray_9
+						   d_cache_validArray_10
+						   d_cache_validArray_11
+						   d_cache_validArray_12
+						   d_cache_validArray_13
+						   d_cache_validArray_14
+						   d_cache_validArray_15)
+				   d_cache_missReq[39:36])) ||
+	    (d_cache_cache_data_serverAdapter_cnt .< 3'd3)) &&
+	   (((d_cache_mshr_readBeforeLaterWrites_0.read &&
+	      d_cache_mshr_readBeforeLaterWrites_1.read)
+	     ? d_cache_mshr_register
+	     : (_ :: Bit 3)) ==
+	    3'd1)
+Blocking rules: (none)
+ 
+Rule: d_cache_startMiss_BRAMResp
+Predicate: d_cache_cache_data_serverAdapter_outData_beforeDeq.read &&
+	   (d_cache_cache_data_serverAdapter_outData_ff.i_notEmpty ||
+	    d_cache_cache_data_serverAdapter_outData_enqw.whas) &&
+	   d_cache_memReqQ.i_notFull &&
+	   (((d_cache_mshr_readBeforeLaterWrites_0.read &&
+	      d_cache_mshr_readBeforeLaterWrites_1.read)
+	     ? d_cache_mshr_register
+	     : (_ :: Bit 3)) ==
+	    3'd2)
+Blocking rules: (none)
+ 
+Rule: d_cache_sendFillReq
+Predicate: d_cache_memReqQ.i_notFull &&
+	   (((d_cache_mshr_readBeforeLaterWrites_0.read &&
+	      d_cache_mshr_readBeforeLaterWrites_1.read)
+	     ? d_cache_mshr_register
+	     : (_ :: Bit 3)) ==
+	    3'd3)
+Blocking rules: (none)
+ 
+Rule: d_cache_waitFillResp
+Predicate: (d_cache_cache_data_serverAdapter_cnt .< 3'd3) &&
+	   d_cache_memRespQ.i_notEmpty &&
+	   (d_cache_missReq[64] || (! d_cache_hitQ_rv.port0__read[32])) &&
+	   (((d_cache_mshr_readBeforeLaterWrites_0.read &&
+	      d_cache_mshr_readBeforeLaterWrites_1.read)
+	     ? d_cache_mshr_register
+	     : (_ :: Bit 3)) ==
+	    3'd4)
+Blocking rules: (none)
+ 
+Rule: d_cache_waitStore
+Predicate: d_cache_cache_data_serverAdapter_outData_beforeDeq.read &&
+	   (d_cache_cache_data_serverAdapter_outData_ff.i_notEmpty ||
+	    d_cache_cache_data_serverAdapter_outData_enqw.whas) &&
+	   (d_cache_cache_data_serverAdapter_cnt .< 3'd3) &&
+	   d_cache_storeQ.i_notEmpty &&
+	   (((d_cache_mshr_readBeforeLaterWrites_0.read &&
+	      d_cache_mshr_readBeforeLaterWrites_1.read)
+	     ? d_cache_mshr_register
+	     : (_ :: Bit 3)) ==
+	    3'd6)
+Blocking rules: (none)
+ 
+Rule: tic
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: connectICacheDram
+Predicate: i_cache_memReqQ.i_notEmpty &&
+	   dram_reqQ.i_notFull && (dram_bram_serverAdapter_cnt .< 3'd3)
+Blocking rules: (none)
+ 
+Rule: connectDramICache
+Predicate: dram_dl1_d_3_rv.port0__read[128] && i_cache_memRespQ.i_notFull
+Blocking rules: (none)
+ 
+Rule: connectDCacheDram
+Predicate: dram_reqQ.i_notFull &&
+	   (dram_bram_serverAdapter_cnt .< 3'd3) && d_cache_memReqQ.i_notEmpty
+Blocking rules: connectICacheDram
+ 
+Rule: connectDramDCache
+Predicate: dram_dl2_d_3_rv.port0__read[128] && d_cache_memRespQ.i_notFull
+Blocking rules: (none)
+ 
+Rule: requestI
+Predicate: ((i_cache_mshr_readBeforeLaterWrites_1.read
+	     ? i_cache_mshr_port_0.whas
+	       ? i_cache_mshr_port_0.wget
+	       : i_cache_mshr_register
+	     : (_ :: Bit 3)) ==
+	    3'd0) &&
+	   rv_core.RDY_getIReq &&
+	   (i_cache_cache_data_serverAdapter_cnt .< 3'd3) &&
+	   i_cache_loadOffsetQ.i_notFull
+Blocking rules: i_cache_waitFillResp, i_cache_startMiss_BRAMReq
+ 
+Rule: responseI
+Predicate: i_cache_hitQ_rv.port1__read[65] && rv_core.RDY_getIResp
+Blocking rules: (none)
+ 
+Rule: requestD
+Predicate: ((d_cache_mshr_readBeforeLaterWrites_1.read
+	     ? d_cache_mshr_port_0.whas
+	       ? d_cache_mshr_port_0.wget
+	       : d_cache_mshr_register
+	     : (_ :: Bit 3)) ==
+	    3'd0) &&
+	   rv_core.RDY_getDReq &&
+	   (d_cache_cache_data_serverAdapter_cnt .< 3'd3) &&
+	   d_cache_storeQ.i_notFull &&
+	   d_cache_loadOffsetQ.i_notFull
+Blocking rules: d_cache_waitStore,
+		d_cache_waitFillResp,
+		d_cache_startMiss_BRAMReq
+ 
+Rule: responseD
+Predicate: d_cache_hitQ_rv.port1__read[32] && rv_core.RDY_getDResp
+Blocking rules: (none)
+ 
+Rule: requestMMIO
+Predicate: rv_core.RDY_getMMIOReq && mmioreq.i_notFull
+Blocking rules: (none)
+ 
+Rule: responseMMIO
+Predicate: rv_core.RDY_getMMIOResp && mmioreq.i_notEmpty
+Blocking rules: (none)
+ 
+Logical execution order: tic,
+			 connectICacheDram,
+			 connectDramICache,
+			 connectDCacheDram,
+			 connectDramDCache,
+			 responseMMIO,
+			 dram_bram_serverAdapter_stageReadResponseAlways,
+			 dram_bram_serverAdapter_overRun,
+			 dram_bram_serverAdapter_moveToOutFIFO,
+			 dram_bram_serverAdapter_s1__dreg_update,
+			 dram_dl1_try_move,
+			 dram_dl1_try_move_1,
+			 dram_dl1_try_move_2,
+			 dram_deq1,
+			 dram_dl2_try_move,
+			 dram_dl2_try_move_1,
+			 dram_dl2_try_move_2,
+			 dram_deq2,
+			 dram_bram_serverAdapter_outData_enqueue,
+			 dram_bram_serverAdapter_outData_dequeue,
+			 dram_bram_serverAdapter_cnt_finalAdd,
+			 i_cache_startMiss_BRAMReq,
+			 i_cache_sendFillReq,
+			 i_cache_waitFillResp,
+			 i_cache_cache_data_serverAdapter_overRun,
+			 i_cache_cache_data_serverAdapter_moveToOutFIFO,
+			 i_cache_bram_to_hitQ,
+			 responseI,
+			 i_cache_startMiss_BRAMResp,
+			 requestI,
+			 i_cache_cache_data_serverAdapter_stageReadResponseAlways,
+			 i_cache_cache_data_serverAdapter_outData_enqueue,
+			 i_cache_cache_data_serverAdapter_outData_dequeue,
+			 i_cache_cache_data_serverAdapter_cnt_finalAdd,
+			 i_cache_cache_data_serverAdapter_s1__dreg_update,
+			 i_cache_mshr_canonicalize,
+			 d_cache_startMiss_BRAMReq,
+			 d_cache_sendFillReq,
+			 d_cache_waitFillResp,
+			 d_cache_cache_data_serverAdapter_overRun,
+			 d_cache_cache_data_serverAdapter_moveToOutFIFO,
+			 d_cache_bram_to_hitQ,
+			 responseD,
+			 requestMMIO,
+			 d_cache_startMiss_BRAMResp,
+			 d_cache_waitStore,
+			 requestD,
+			 d_cache_cache_data_serverAdapter_stageReadResponseAlways,
+			 d_cache_cache_data_serverAdapter_outData_enqueue,
+			 d_cache_cache_data_serverAdapter_outData_dequeue,
+			 d_cache_cache_data_serverAdapter_cnt_finalAdd,
+			 d_cache_cache_data_serverAdapter_s1__dreg_update,
+			 d_cache_mshr_canonicalize,
+			 d_cache_lockL1_canonicalize
+
+===============================================
