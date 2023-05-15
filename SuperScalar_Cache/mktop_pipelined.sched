@@ -2,80 +2,42 @@
 
 Rule schedule
 -------------
-Rule: dram_bram_serverAdapterA_outData_enqueue
-Predicate: dram_bram_serverAdapterA_outData_enqw.whas &&
-	   ((! dram_bram_serverAdapterA_outData_dequeueing.whas) ||
-	    dram_bram_serverAdapterA_outData_ff.i_notEmpty)
+Rule: dram_bram_serverAdapter_outData_enqueue
+Predicate: dram_bram_serverAdapter_outData_enqw.whas &&
+	   ((! dram_bram_serverAdapter_outData_dequeueing.whas) ||
+	    dram_bram_serverAdapter_outData_ff.i_notEmpty)
 Blocking rules: (none)
  
-Rule: dram_bram_serverAdapterA_outData_dequeue
-Predicate: dram_bram_serverAdapterA_outData_dequeueing.whas &&
-	   dram_bram_serverAdapterA_outData_ff.i_notEmpty
+Rule: dram_bram_serverAdapter_outData_dequeue
+Predicate: dram_bram_serverAdapter_outData_dequeueing.whas &&
+	   dram_bram_serverAdapter_outData_ff.i_notEmpty
 Blocking rules: (none)
  
-Rule: dram_bram_serverAdapterA_cnt_finalAdd
-Predicate: dram_bram_serverAdapterA_cnt_1.whas ||
-	   dram_bram_serverAdapterA_cnt_2.whas ||
-	   dram_bram_serverAdapterA_cnt_3.whas
+Rule: dram_bram_serverAdapter_cnt_finalAdd
+Predicate: dram_bram_serverAdapter_cnt_1.whas ||
+	   dram_bram_serverAdapter_cnt_2.whas ||
+	   dram_bram_serverAdapter_cnt_3.whas
 Blocking rules: (none)
  
-Rule: dram_bram_serverAdapterA_s1__dreg_update
+Rule: dram_bram_serverAdapter_s1__dreg_update
 Predicate: True
 Blocking rules: (none)
  
-Rule: dram_bram_serverAdapterA_stageReadResponseAlways
-Predicate: dram_bram_serverAdapterA_writeWithResp.whas
+Rule: dram_bram_serverAdapter_stageReadResponseAlways
+Predicate: dram_bram_serverAdapter_writeWithResp.whas
 Blocking rules: (none)
  
-Rule: dram_bram_serverAdapterA_moveToOutFIFO
-Predicate: ((! dram_bram_serverAdapterA_s1[0]) ||
-	    dram_bram_serverAdapterA_outData_ff.i_notFull) &&
-	   dram_bram_serverAdapterA_s1[1]
+Rule: dram_bram_serverAdapter_moveToOutFIFO
+Predicate: ((! dram_bram_serverAdapter_s1[0]) ||
+	    dram_bram_serverAdapter_outData_ff.i_notFull) &&
+	   dram_bram_serverAdapter_s1[1]
 Blocking rules: (none)
  
-Rule: dram_bram_serverAdapterA_overRun
-Predicate: dram_bram_serverAdapterA_s1[1] &&
-	   ((! dram_bram_serverAdapterA_outData_beforeEnq.read) ||
-	    (! dram_bram_serverAdapterA_outData_beforeDeq.read) ||
-	    (! dram_bram_serverAdapterA_outData_ff.i_notFull))
-Blocking rules: (none)
- 
-Rule: dram_bram_serverAdapterB_outData_enqueue
-Predicate: dram_bram_serverAdapterB_outData_enqw.whas &&
-	   ((! dram_bram_serverAdapterB_outData_dequeueing.whas) ||
-	    dram_bram_serverAdapterB_outData_ff.i_notEmpty)
-Blocking rules: (none)
- 
-Rule: dram_bram_serverAdapterB_outData_dequeue
-Predicate: dram_bram_serverAdapterB_outData_dequeueing.whas &&
-	   dram_bram_serverAdapterB_outData_ff.i_notEmpty
-Blocking rules: (none)
- 
-Rule: dram_bram_serverAdapterB_cnt_finalAdd
-Predicate: dram_bram_serverAdapterB_cnt_1.whas ||
-	   dram_bram_serverAdapterB_cnt_2.whas ||
-	   dram_bram_serverAdapterB_cnt_3.whas
-Blocking rules: (none)
- 
-Rule: dram_bram_serverAdapterB_s1__dreg_update
-Predicate: True
-Blocking rules: (none)
- 
-Rule: dram_bram_serverAdapterB_stageReadResponseAlways
-Predicate: dram_bram_serverAdapterB_writeWithResp.whas
-Blocking rules: (none)
- 
-Rule: dram_bram_serverAdapterB_moveToOutFIFO
-Predicate: ((! dram_bram_serverAdapterB_s1[0]) ||
-	    dram_bram_serverAdapterB_outData_ff.i_notFull) &&
-	   dram_bram_serverAdapterB_s1[1]
-Blocking rules: (none)
- 
-Rule: dram_bram_serverAdapterB_overRun
-Predicate: dram_bram_serverAdapterB_s1[1] &&
-	   ((! dram_bram_serverAdapterB_outData_beforeEnq.read) ||
-	    (! dram_bram_serverAdapterB_outData_beforeDeq.read) ||
-	    (! dram_bram_serverAdapterB_outData_ff.i_notFull))
+Rule: dram_bram_serverAdapter_overRun
+Predicate: dram_bram_serverAdapter_s1[1] &&
+	   ((! dram_bram_serverAdapter_outData_beforeEnq.read) ||
+	    (! dram_bram_serverAdapter_outData_beforeDeq.read) ||
+	    (! dram_bram_serverAdapter_outData_ff.i_notFull))
 Blocking rules: (none)
  
 Rule: dram_dl1_try_move
@@ -103,17 +65,19 @@ Predicate: True
 Blocking rules: (none)
  
 Rule: dram_deq1
-Predicate: dram_bram_serverAdapterA_outData_beforeDeq.read &&
-	   (dram_bram_serverAdapterA_outData_ff.i_notEmpty ||
-	    dram_bram_serverAdapterA_outData_enqw.whas) &&
-	   (! dram_dl1_d_0_rv.port1__read[512])
+Predicate: dram_bram_serverAdapter_outData_beforeDeq.read &&
+	   (dram_bram_serverAdapter_outData_ff.i_notEmpty ||
+	    dram_bram_serverAdapter_outData_enqw.whas) &&
+	   dram_reqQ.i_notEmpty && (! dram_dl1_d_0_rv.port1__read[512]) &&
+	   dram_reqQ.first[0]
 Blocking rules: (none)
  
 Rule: dram_deq2
-Predicate: dram_bram_serverAdapterB_outData_beforeDeq.read &&
-	   (dram_bram_serverAdapterB_outData_ff.i_notEmpty ||
-	    dram_bram_serverAdapterB_outData_enqw.whas) &&
-	   (! dram_dl2_d_0_rv.port1__read[512])
+Predicate: dram_bram_serverAdapter_outData_beforeDeq.read &&
+	   (dram_bram_serverAdapter_outData_ff.i_notEmpty ||
+	    dram_bram_serverAdapter_outData_enqw.whas) &&
+	   dram_reqQ.i_notEmpty && (! dram_dl2_d_0_rv.port1__read[512]) &&
+	   (! dram_reqQ.first[0])
 Blocking rules: (none)
  
 Rule: i_cache_cache_data_serverAdapter_outData_enqueue
@@ -399,7 +363,7 @@ Blocking rules: (none)
  
 Rule: connectICacheDram
 Predicate: i_cache_memReqQ.i_notEmpty &&
-	   (dram_bram_serverAdapterA_cnt .< 3'd3)
+	   dram_reqQ.i_notFull && (dram_bram_serverAdapter_cnt .< 3'd3)
 Blocking rules: (none)
  
 Rule: connectDramICache
@@ -407,9 +371,9 @@ Predicate: dram_dl1_d_3_rv.port0__read[512] && i_cache_memRespQ.i_notFull
 Blocking rules: (none)
  
 Rule: connectDCacheDram
-Predicate: d_cache_memReqQ.i_notEmpty &&
-	   (dram_bram_serverAdapterB_cnt .< 3'd3)
-Blocking rules: (none)
+Predicate: dram_reqQ.i_notFull &&
+	   (dram_bram_serverAdapter_cnt .< 3'd3) && d_cache_memReqQ.i_notEmpty
+Blocking rules: connectICacheDram
  
 Rule: connectDramDCache
 Predicate: dram_dl2_d_3_rv.port0__read[512] && d_cache_memRespQ.i_notFull
@@ -464,28 +428,21 @@ Logical execution order: tic,
 			 connectDCacheDram,
 			 connectDramDCache,
 			 responseMMIO,
-			 dram_bram_serverAdapterA_stageReadResponseAlways,
-			 dram_bram_serverAdapterA_overRun,
-			 dram_bram_serverAdapterA_moveToOutFIFO,
-			 dram_bram_serverAdapterA_s1__dreg_update,
-			 dram_bram_serverAdapterB_stageReadResponseAlways,
-			 dram_bram_serverAdapterB_overRun,
-			 dram_bram_serverAdapterB_moveToOutFIFO,
-			 dram_bram_serverAdapterB_s1__dreg_update,
+			 dram_bram_serverAdapter_stageReadResponseAlways,
+			 dram_bram_serverAdapter_overRun,
+			 dram_bram_serverAdapter_moveToOutFIFO,
+			 dram_bram_serverAdapter_s1__dreg_update,
 			 dram_dl1_try_move,
 			 dram_dl1_try_move_1,
 			 dram_dl1_try_move_2,
 			 dram_deq1,
-			 dram_bram_serverAdapterA_outData_enqueue,
-			 dram_bram_serverAdapterA_outData_dequeue,
-			 dram_bram_serverAdapterA_cnt_finalAdd,
 			 dram_dl2_try_move,
 			 dram_dl2_try_move_1,
 			 dram_dl2_try_move_2,
 			 dram_deq2,
-			 dram_bram_serverAdapterB_outData_enqueue,
-			 dram_bram_serverAdapterB_outData_dequeue,
-			 dram_bram_serverAdapterB_cnt_finalAdd,
+			 dram_bram_serverAdapter_outData_enqueue,
+			 dram_bram_serverAdapter_outData_dequeue,
+			 dram_bram_serverAdapter_cnt_finalAdd,
 			 i_cache_startMiss_BRAMReq,
 			 i_cache_sendFillReq,
 			 i_cache_waitFillResp,

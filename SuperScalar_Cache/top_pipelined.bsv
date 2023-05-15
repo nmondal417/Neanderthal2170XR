@@ -12,7 +12,7 @@ typedef Bit#(32) Word;
 
 module mktop_pipelined(Empty);
     // Instantiate the dual ported memory
-    MainMem2 dram <- mkMainMem2;
+    MainMem2 dram <- mkMainMemFPGA;
     //I-Cache
     Cache2 i_cache <- mkCache2;
     //D-Cache

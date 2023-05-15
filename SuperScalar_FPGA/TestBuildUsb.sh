@@ -19,7 +19,7 @@ cp SizedFIFO.v build/.
 cp RevertReg.v build/.
 cp BRAM1.v build/.
 #cp  BRAM2.v build/.
-cp BRAM2Load.v build/.
+cp BRAM1Load.v build/.
 cp mem.vmh build/.
 cp FIFO1.v build/.
 

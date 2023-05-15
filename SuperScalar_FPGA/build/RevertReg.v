@@ -3,6 +3,7 @@
 `else
 `define BSV_ASSIGNMENT_DELAY
 `endif
+
 module RevertReg(CLK, Q_OUT, D_IN, EN);
 
    parameter width = 1;

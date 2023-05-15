@@ -58,7 +58,7 @@ module top(OrangeCrab ifc);
 
     //Reg#(Bit#(8)) req <- mkReg(0);
 
-    FIFO#(Bit#(8)) to_host <- mkFIFO; // ASCII To computer
+    FIFO#(Bit#(8)) to_host <- mkFIFO1; // ASCII To computer
     FIFOF#(Bit#(8)) from_host <- mkSizedFIFOF(8);
 
     /* Modifiable */
@@ -73,7 +73,7 @@ module top(OrangeCrab ifc);
     RVIfc rv_core <- mkpipelined;
     Reg#(Mem2) ireq <- mkRegU;
     Reg#(Mem) dreq <- mkRegU;
-    FIFO#(Mem) mmioreq <- mkFIFO;
+    FIFO#(Mem) mmioreq <- mkFIFO1;
     Reg#(Bit#(24)) cycle_count <- mkReg(0);
 
     rule tic;
@@ -81,12 +81,8 @@ module top(OrangeCrab ifc);
         // if (cycle_count == 0 ) begin
         //     r <= (r == 255) ? 0: 255;
         // end 
-        r <= rv_core.getPC()[7:0];
-        g <= rv_core.getPC()[15:8];
-        b <= rv_core.getPC()[23:16];
-
     endrule
-
+    
     rule connectICacheDram;
         let lineReq <- i_cache.getToMem();
         dram.put1(lineReq);
@@ -104,7 +100,6 @@ module top(OrangeCrab ifc);
         let resp <- dram.get2();
         d_cache.putFromMem(resp);
     endrule
-
     rule requestI;
         let req <- rv_core.getIReq();
         ireq <= req;

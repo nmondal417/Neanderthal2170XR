@@ -83,7 +83,7 @@ module mkpipelined(RVIfc);
     //Scoreboard
     Vector#(32, Ehr#(6, Bool)) sb <- replicateM(mkEhr(False));
 
-    Reg#(Bool) starting <- mkReg(True);
+    Reg#(Bool) starting <- mkReg(False);
     
     rule fetch if (!starting);
         toImem.enq(Mem2{byte_en: 0,  addr: program_counter[0], data: 0});

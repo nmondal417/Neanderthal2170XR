@@ -20,10 +20,10 @@ module BRAM2Load(CLKA,
                  );
 
    parameter                      FILENAME   = "./mem.vmh";
-   parameter                      PIPELINED  = 1;
-   parameter                      ADDR_WIDTH = 26;
-   parameter                      DATA_WIDTH = 512;
-   parameter                      MEMSIZE    = 67108864;
+   parameter                      PIPELINED  = 0;
+   parameter                      ADDR_WIDTH = 1;
+   parameter                      DATA_WIDTH = 1;
+   parameter                      MEMSIZE    = 1;
    parameter                      BINARY     = 0;
 
    input                          CLKA;

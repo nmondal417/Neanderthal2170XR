@@ -13,10 +13,10 @@ module BRAM1(CLK,
              DO
              );
 
-   parameter                      PIPELINED  = 1;
-   parameter                      ADDR_WIDTH = 7;
-   parameter                      DATA_WIDTH = 512;
-   parameter                      MEMSIZE    = 128;
+   parameter                      PIPELINED  = 0;
+   parameter                      ADDR_WIDTH = 1;
+   parameter                      DATA_WIDTH = 1;
+   parameter                      MEMSIZE    = 1;
 
    input                          CLK;
    input                          EN;

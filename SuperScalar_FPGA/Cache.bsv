@@ -5,8 +5,8 @@ import MemTypes::*;
 import Vector::*;
 import Ehr::*;
 
-typedef Bit#(19) TagSize;
-typedef Bit#(7) IdxSize;
+typedef Bit#(22) TagSize;
+typedef Bit#(4) IdxSize;
 typedef Bit#(4) OffsetSize;
 typedef enum {Ready, StartMiss_BRAMReq, StartMiss_BRAMResp, SendFillReq, WaitFillResp, HitQ, WaitStore} ReqStatus deriving (Bits, Eq);
 
@@ -21,17 +21,17 @@ module mkCache1(Cache1);
   BRAM_Configure cfg = defaultValue();
   BRAM1Port#(IdxSize, Vector#(16, Word)) cache_data <- mkBRAM1Server(cfg);  //each cache line of data is 16 32-bit words (512 bits)
 
-  Vector#(128, Reg#(TagSize)) tagArray <- replicateM(mkReg(0));
-  Vector#(128, Reg#(Bool)) validArray <- replicateM(mkReg(False));
-  Vector#(128, Reg#(Bool)) dirtyArray <- replicateM(mkReg(False));
+  Vector#(16, Reg#(TagSize)) tagArray <- replicateM(mkReg(0));
+  Vector#(16, Reg#(Bool)) validArray <- replicateM(mkReg(False));
+  Vector#(16, Reg#(Bool)) dirtyArray <- replicateM(mkReg(False));
 
   Reg#(ProcReq) missReq <- mkRegU;
   Ehr#(2, ReqStatus) mshr <- mkEhr(Ready);
 
   FIFO#(Word) hitQ <- mkBypassFIFO;
-  FIFO#(OffsetSize) loadOffsetQ <- mkFIFO;
-  FIFO#(MainMemReq) memReqQ <- mkFIFO;
-  FIFO#(MainMemResp) memRespQ <- mkFIFO; 
+  FIFO#(OffsetSize) loadOffsetQ <- mkFIFO1;
+  FIFO#(MainMemReq) memReqQ <- mkFIFO1;
+  FIFO#(MainMemResp) memRespQ <- mkFIFO1; 
 
   FIFO#(ProcReq) storeQ <- mkSizedFIFO(1);
 
@@ -53,7 +53,7 @@ module mkCache1(Cache1);
 
 
   rule startMiss_BRAMReq if (mshr[0] == StartMiss_BRAMReq);
-    let req_idx = missReq.addr[12:6];
+    let req_idx = missReq.addr[9:6];
     let old_line_valid = validArray[req_idx];
     let old_line_dirty = dirtyArray[req_idx];
 
@@ -75,7 +75,7 @@ module mkCache1(Cache1);
     Vector#(16, Word) old_line <- cache_data.portA.response.get();  //get old cache line
     MainMemResp old_data = pack(old_line);   //convert vector of 16 words into 512 bits
 
-    let req_idx = missReq.addr[12:6];
+    let req_idx = missReq.addr[9:6];
     let old_tag = tagArray[req_idx];
     LineAddr old_addr = {old_tag, req_idx};   //concat tag and idx together to get the address
 
@@ -104,8 +104,8 @@ module mkCache1(Cache1);
     //$display("New Line ", fshow(new_line));
     let req_store = missReq.write;
     let req_offset = missReq.addr[5:2];
-    let req_idx = missReq.addr[12:6];
-    let req_tag = missReq.addr[31:13];
+    let req_idx = missReq.addr[9:6];
+    let req_tag = missReq.addr[31:10];
     let req_data = missReq.data;
 
     tagArray[req_idx] <= req_tag;
@@ -179,7 +179,7 @@ module mkCache1(Cache1);
 
     Word req_data = req.data;
     Word req_addr = req.addr;
-    let req_idx = req_addr[12:6];
+    let req_idx = req_addr[9:6];
     let req_offset = req_addr[5:2];
 
     line[req_offset] = req_data;
@@ -208,8 +208,8 @@ module mkCache1(Cache1);
     Word req_data = req.data;
 
     let req_offset = req_addr[5:2];
-    let req_idx = req_addr[12:6];
-    let req_tag = req_addr[31:13];
+    let req_idx = req_addr[9:6];
+    let req_tag = req_addr[31:10];
     let cur_tag = tagArray[req_idx];
     let cur_valid = validArray[req_idx];
     //$display("Load/Store: %d, Tag: %d, Idx: %d, Offset: %d", req_store, req_tag, req_idx, req_offset);

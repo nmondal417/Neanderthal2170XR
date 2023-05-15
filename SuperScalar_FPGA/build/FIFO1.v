@@ -25,7 +25,6 @@
 `endif
 
 // Depth 1 FIFO
-
 module FIFO1(CLK,
              RST,
              D_IN,
