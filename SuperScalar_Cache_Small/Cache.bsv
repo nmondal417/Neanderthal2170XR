@@ -40,17 +40,27 @@ module mkCache1(Cache1);
 
   Ehr#(2, Bool) lockL1 <- mkEhr(False);
 
+  let debug = False;
+
+  Bit#(32) maxCount = 20;
+    Reg#(Bit#(32)) count <- mkReg(0);
+    rule doTic;
+        if (debug && count < maxCount) begin
+            if (debug && count < maxCount) $display("Cycle %d", count);
+        end
+        count <= count + 1;
+    endrule
+
   rule bram_to_hitQ if (mshr[0] == HitQ);
     Vector#(4, Word) line <- cache_data.portA.response.get();
-    //$display("Line: ", fshow(line));
+    if (debug && count < maxCount) $display("Line: ", fshow(line));
     let req_offset = loadOffsetQ.first();
     loadOffsetQ.deq();
     Word data = line[req_offset];
-    //$display("Return data: ", fshow(data));
+    if (debug && count < maxCount) $display("Return data: ", fshow(data));
     hitQ.enq(data);
     mshr[0] <= Ready;
   endrule
-
 
   rule startMiss_BRAMReq if (mshr[0] == StartMiss_BRAMReq);
     let req_idx = missReq.addr[7:4];
@@ -99,9 +109,9 @@ module mkCache1(Cache1);
   rule waitFillResp if (mshr[0] == WaitFillResp);
     memRespQ.deq();
     MainMemResp mem_data = memRespQ.first();
-    //$display("Mem Resp ", mem_data);
+    if (debug && count < maxCount) $display("Mem Resp ", mem_data);
     Vector#(4, Word) new_line = unpack(mem_data); //unpack the 128-bit response into a vector of 4 words
-    //$display("New Line ", fshow(new_line));
+    if (debug && count < maxCount) $display("New Line ", fshow(new_line));
     let req_store = missReq.write;
     let req_offset = missReq.addr[3:2];
     let req_idx = missReq.addr[7:4];
@@ -122,10 +132,10 @@ module mkCache1(Cache1);
     end
     else begin     //load instruction
 
-      //$display("Offset: ", fshow(req_offset));
-      //$display("Idx: ", fshow(req_idx));
-      //$display("Tag: ", fshow(req_tag));
-      //$display("New Line: ", fshow(new_line));
+      if (debug && count < maxCount) $display("Offset: ", fshow(req_offset));
+      if (debug && count < maxCount) $display("Idx: ", fshow(req_idx));
+      if (debug && count < maxCount) $display("Tag: ", fshow(req_tag));
+      if (debug && count < maxCount) $display("New Line: ", fshow(new_line));
 
       dirtyArray[req_idx] <= False;
       cache_data.portA.request.put(BRAMRequest{write: True,   //write new data to cache
@@ -134,7 +144,7 @@ module mkCache1(Cache1);
                          datain: new_line});
 
       Word return_data = new_line[req_offset];
-      //$display("Return data: ", fshow(return_data));
+      //if (debug && count < maxCount) $display("Return data: ", fshow(return_data));
       hitQ.enq(return_data);
     end
 
@@ -153,7 +163,7 @@ module mkCache1(Cache1);
     let cur_tag = tagArray[req_idx];
     let cur_valid = validArray[req_idx];
 
-    //$display("Tag: %d, Idx: %d", req_tag, req_idx);
+    //if (debug && count < maxCount) $display("Tag: %d, Idx: %d", req_tag, req_idx);
 
     if (cur_tag == req_tag && cur_valid) begin  //cache hit
       hitCount <= hitCount + 1;
@@ -196,7 +206,7 @@ module mkCache1(Cache1);
 /*
   rule displayPercents;
     if (missCount == 100) begin
-      $display("Misses: %d Hits: %d", missCount, hitCount);
+      if (debug && count < maxCount) $display("Misses: %d Hits: %d", missCount, hitCount);
     end
   endrule
 */
@@ -212,11 +222,11 @@ module mkCache1(Cache1);
     let req_tag = req_addr[31:8];
     let cur_tag = tagArray[req_idx];
     let cur_valid = validArray[req_idx];
-    //$display("Load/Store: %d, Tag: %d, Idx: %d, Offset: %d", req_store, req_tag, req_idx, req_offset);
+    if (debug && count < maxCount) $display("Load/Store: %d, Tag: %d, Idx: %d, Offset: %d", req_store, req_tag, req_idx, req_offset);
 
     if (req_store == 1) begin //store instruction
       if (cur_tag == req_tag && cur_valid) begin  //cache hit
-        //$display("Cache Store Hit");
+        //if (debug && count < maxCount) $display("Cache Store Hit");
         hitCount <= hitCount + 1;
         dirtyArray[req_idx] <= True;    //update dirty array
         cache_data.portA.request.put(BRAMRequest{write: False,   //we need to first read the entire line before writing the word
@@ -227,7 +237,7 @@ module mkCache1(Cache1);
         storeQ.enq(req);
       end
       else begin
-        //$display("Cache Store Miss");
+        //if (debug && count < maxCount) $display("Cache Store Miss");
         missCount <= missCount + 1;
         mshr[1] <= StartMiss_BRAMReq;
         missReq <= req;
@@ -239,14 +249,14 @@ module mkCache1(Cache1);
       lockL1[0] <= True;    //lock L1 so that store buffer does not access it
       ProcReq storeQ_req = storeQ.first();
       if (storeQ_req.addr == req_addr)  begin   //hit in store Q
-          //$display("here");
+          //if (debug && count < maxCount) $display("here");
           hitCount <= hitCount + 1;
           Word storeQ_data = storeQ_req.data;
           hitQ.enq(storeQ_data);
       end
       */
       if (cur_tag == req_tag && cur_valid) begin  //cache hit 
-        //$display("Cache Load Hit");
+        //if (debug && count < maxCount) $display("Cache Load Hit");
         hitCount <= hitCount + 1;
         cache_data.portA.request.put(BRAMRequest{write: False,   //read corresponding line (128 bits) from cache
                          responseOnWrite: False,
@@ -258,7 +268,7 @@ module mkCache1(Cache1);
         mshr[1] <= HitQ;
       end
       else begin     //cache miss
-        //$display("Cache Load Miss");
+        //if (debug && count < maxCount) $display("Cache Load Miss");
         missCount <= missCount + 1;
         mshr[1] <= StartMiss_BRAMReq;
         missReq <= req;

@@ -68,7 +68,7 @@ module mkpipelined(RVIfc);
     FIFO#(Mem) fromDmem <- mkBypassFIFO;
     SupFifo#(Mem) toMMIO <- mkBypassSupFifo;
     FIFO#(Mem) fromMMIO <- mkBypassFIFO;
-    let debug = False;
+    let debug = True;
     let mmio_debug = True;
     let konata_debug = False;
 
@@ -112,7 +112,7 @@ module mkpipelined(RVIfc);
 
     //Tics
     Reg#(Bool) starting <- mkReg(True);
-    Bit#(32) maxCount = 200;
+    Bit#(32) maxCount = 1000;
     Reg#(Bit#(32)) count <- mkReg(0);
     rule doTic;
         if (debug && count < maxCount) begin

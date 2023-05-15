@@ -68,7 +68,7 @@ module mkpipelined(RVIfc);
     FIFO#(Mem) fromDmem <- mkBypassFIFO;
     SupFifo#(Mem) toMMIO <- mkBypassSupFifo;
     FIFO#(Mem) fromMMIO <- mkBypassFIFO;
-    let debug = False;
+    let debug = True;
     let mmio_debug = True;
     let konata_debug = False;
 
@@ -112,7 +112,7 @@ module mkpipelined(RVIfc);
 
     //Tics
     Reg#(Bool) starting <- mkReg(True);
-    Bit#(32) maxCount = 200;
+    Bit#(32) maxCount = 1000;
     Reg#(Bit#(32)) count <- mkReg(0);
     rule doTic;
         if (debug && count < maxCount) begin
@@ -141,7 +141,7 @@ module mkpipelined(RVIfc);
         if(debug && count < maxCount) $display("Fetch %x", program_counter[0]);
         toImem.enq(Mem2{byte_en: 0,  addr: program_counter[0], data: 0});
         f2d.enq1(F2D{pc: program_counter[0], ppc: program_counter[0] + 4, epoch: mEpoch[0], k_id: iid});
-        if  (program_counter[0][5:2] != 15 ) begin 
+        if  (program_counter[0][3:2] != 3 ) begin 
             let iid2 <- fetch2Konata(lfh, fresh_id[1], 0);
             if (konata_debug) label2KonataLeft(lfh, iid2, $format("PC %x",program_counter[0]+4));
             if(debug && count < maxCount) $display("Fetch %x", program_counter[0]+4);

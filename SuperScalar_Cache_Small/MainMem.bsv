@@ -135,7 +135,7 @@ endmodule
 module mkMainMemFPGA(MainMem2);
     BRAM_Configure cfg = defaultValue();
     cfg.loadFormat = tagged Hex "mem.vmh";
-    BRAM1Port#(Bit#(7), MainMemResp) bram <- mkBRAM1Server(cfg);
+    BRAM1Port#(LineAddr, MainMemResp) bram <- mkBRAM1Server(cfg);
     DelayLine#(4, MainMemResp) dl1 <- mkDL(); // Delay by 2 cycles
     DelayLine#(4, MainMemResp) dl2 <- mkDL(); // Delay by 2 cycles
     
@@ -158,7 +158,7 @@ module mkMainMemFPGA(MainMem2);
         bram.portA.request.put(BRAMRequest{
             write: unpack(req.write),
             responseOnWrite: False,
-            address: req.addr[6:0],
+            address: req.addr,
             datain: req.data
         });
     endmethod
@@ -168,7 +168,7 @@ module mkMainMemFPGA(MainMem2);
         bram.portA.request.put(BRAMRequest{
             write: unpack(req.write),
             responseOnWrite: False,
-            address: req.addr[6:0],
+            address: req.addr,
             datain: req.data
         });
     endmethod

@@ -256,6 +256,10 @@ Rule: d_cache_lockL1_canonicalize
 Predicate: True
 Blocking rules: (none)
  
+Rule: d_cache_doTic
+Predicate: True
+Blocking rules: (none)
+ 
 Rule: d_cache_bram_to_hitQ
 Predicate: d_cache_cache_data_serverAdapter_outData_beforeDeq.read &&
 	   (d_cache_cache_data_serverAdapter_outData_ff.i_notEmpty ||
@@ -458,6 +462,7 @@ Logical execution order: tic,
 			 i_cache_cache_data_serverAdapter_cnt_finalAdd,
 			 i_cache_cache_data_serverAdapter_s1__dreg_update,
 			 i_cache_mshr_canonicalize,
+			 d_cache_doTic,
 			 d_cache_startMiss_BRAMReq,
 			 d_cache_sendFillReq,
 			 d_cache_waitFillResp,
